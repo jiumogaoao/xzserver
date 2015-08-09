@@ -19,7 +19,7 @@ var app = require('./server')
 	  config : require('./config')
    }
 
-   var dbURL="mongodb://127.0.0.1:27017/talk"
+   var dbURL="mongodb://127.0.0.1:27017/xingzhong"
    global.db = require("mongoose").connect(dbURL);
    global.data_mg = {}
       data_mg.admin = require('./data/models/admin');//管理员表
@@ -72,7 +72,7 @@ var app = require('./server')
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==26){
+			if(totalCount==27){
 				showDB();
 				}
 			}
@@ -86,114 +86,71 @@ var app = require('./server')
 			console.log("key init");
 			totalCheck();
 			});
-		var indexpromo1=new data_mg.promotion({"id":"001","name":"广告位一","image":[""],"dsc":"","job":"",group:"index"})
+		var indexpromo1=new data_mg.promotion({"id":"001","name":"侧栏一","image":"http://","link":"http://"})
 		indexpromo1.save(function(){
 			console.log("indexpromo1 init");
 			totalCheck();
 			});
-		var indexpromo2=new data_mg.promotion({"id":"002","name":"广告位二","image":[""],"dsc":"","job":"",group:"index"})
+		var indexpromo2=new data_mg.promotion({"id":"002","name":"侧栏二","image":"http://","link":"http://"})
 		indexpromo2.save(function(){
 			console.log("indexpromo2 init");
 			totalCheck();
 			});
-		var indexpromo3=new data_mg.promotion({"id":"003","name":"广告位三","image":[""],"dsc":"","job":"",group:"index"})
+		var indexpromo3=new data_mg.promotion({"id":"003","name":"侧栏三","image":"http://","link":"http://"})
 		indexpromo3.save(function(){
 			console.log("indexpromo3 init");
 			totalCheck();
 			});
-		var indexpromo4=new data_mg.promotion({"id":"004","name":"星众客户组成","image":[""],"dsc":"","job":"",group:"index",data:[
-										{"name":"19岁以下","value":1},
-										{"name":"20-29岁以下","value":25},
-										{"name":"30-39岁以下","value":62},
-										{"name":"40-49岁以下","value":7},
-										{"name":"50岁以上","value":4},
-										]})
+		var indexpromo4=new data_mg.promotion({"id":"004","name":"表A一","image":"http://","link":"http://"})
 		indexpromo4.save(function(){
 			console.log("indexpromo4 init");
 			totalCheck();
 			});
-		var indexpromo5=new data_mg.promotion({"id":"005","name":"中南海地价","image":[""],"dsc":"","job":"",group:"index",data:[
-										{"name":"03/12","value":1000},
-										{"name":"03/16","value":1232},
-										{"name":"03/20","value":1225},
-										{"name":"03/24","value":1135},
-										{"name":"03/28","value":1445},
-										{"name":"04/02","value":1744},
-										{"name":"04/06","value":1453},
-										{"name":"04/10","value":1264},
-										{"name":"04/14","value":1046},
-										{"name":"04/18","value":1123},
-									]})
+		var indexpromo5=new data_mg.promotion({"id":"005","name":"表A二","image":"http://","link":"http://"})
 		indexpromo5.save(function(){
 			console.log("indexpromo5 init");
 			totalCheck();
 			});
-		var indexpromo6=new data_mg.promotion({"id":"006","name":"星众2014业绩","image":[""],"dsc":"","job":"",group:"index",data:[
-										{"name":"一月","value":10},
-										{"name":"二月","value":10},
-										{"name":"三月","value":20},
-										{"name":"四月","value":30},
-										{"name":"五月","value":40},
-										{"name":"六月","value":50},
-										{"name":"七月","value":60},
-										{"name":"八月","value":70},
-										{"name":"九月","value":80},
-										{"name":"十月","value":90},
-										{"name":"十一月","value":40},
-										{"name":"十二月","value":50},
-									]})
+		var indexpromo6=new data_mg.promotion({"id":"006","name":"表A三","image":"http://","link":"http://"})
 		indexpromo6.save(function(){
 			console.log("indexpromo6 init");
 			totalCheck();
 			});
-		var indexpromo7=new data_mg.promotion({"id":"007","name":"众筹步聚","image":[],"dsc":"","job":"",group:"procedure"})
+		var indexpromo7=new data_mg.promotion({"id":"007","name":"表A四","image":"http://","link":"http://"})
 		indexpromo7.save(function(){
 			console.log("indexpromo7 init");
 			totalCheck();
 			});
-		var indexpromo8=new data_mg.promotion({id:"008",
-					name:"常见问题",
-					dsc:"不说",
-					data:[],group:"FAQS"})
+		var indexpromo8=new data_mg.promotion({"id":"008","name":"表A五","image":"http://","link":"http://"})
 		indexpromo8.save(function(){
 			console.log("indexpromo8 init");
 			totalCheck();
 			});
-		var indexpromo9=new data_mg.promotion({id:"009",
-					name:"创始团队",
-					dsc:"不说",
-					data:[],
-					group:"team"
-					})
+		var indexpromo9=new data_mg.promotion({"id":"009","name":"表B一","image":"http://","link":"http://"})
 		indexpromo9.save(function(){
 			console.log("indexpromo9 init");
 			totalCheck();
 			});
-		var indexpromo10=new data_mg.promotion({id:"010",
-					name:"风险控制小组",
-					dsc:"不说",
-					data:[],group:"team"
-					})
+		var indexpromo10=new data_mg.promotion({"id":"010","name":"表B二","image":"http://","link":"http://"})
 		indexpromo10.save(function(){
 			console.log("indexpromo10 init");
 			totalCheck();
 			});
-		var indexpromo11=new data_mg.promotion({id:"011",
-					name:"底部专栏",
-					dsc:"不说",
-					data:[],group:"team"
-					})
+		var indexpromo11=new data_mg.promotion({"id":"011","name":"表B三","image":"http://","link":"http://"})
 		indexpromo11.save(function(){
 			console.log("indexpromo11 init");
 			totalCheck();
 			});
-		var indexpromo12=new data_mg.promotion({"id":"012","name":"经营理念","image":[""],"dsc":"","job":"",group:"idea",data:[]
-						   })
+		var indexpromo12=new data_mg.promotion({"id":"012","name":"表B四","image":"http://","link":"http://"})
 		indexpromo12.save(function(){
 			console.log("indexpromo12 init");
 			totalCheck();
 			});
-			
+		var indexpromo13=new data_mg.promotion({"id":"013","name":"表B五","image":"http://","link":"http://"})
+		indexpromo13.save(function(){
+			console.log("indexpromo13 init");
+			totalCheck();
+			});	
 		var addConfig=new data_mg.config({
 		any:{
 		footerInfo:{

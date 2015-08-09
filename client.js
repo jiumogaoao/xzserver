@@ -165,7 +165,9 @@ function login(socket,data,fn){
 		}
 	console.log(data.data)
 	var result={
+					success:false,
 					code:0,
+					message:"",
 					data:{}
 					};
 					
@@ -184,8 +186,8 @@ function login(socket,data,fn){
 		console.log(err)
 		console.log(doc)
 		if(doc&&doc.length){
-			data_mg.client_password.findOne({"parentKey":doc[0].id,"childKey":data.data.passWord},function(err,docA){
-				console.log(err)
+			data_mg.client_password.findOne({"parentKey":doc[0].id,"childKey":data.data.passWord},function(errA,docA){
+				console.log(errA)
 				console.log(docA)
 				if(docA){
 					doc[0].lastTime=doc[0].time||new Date().getTime();
@@ -197,22 +199,26 @@ function login(socket,data,fn){
 						console.log("updateClient")
 						if(errB){
 							console.log(errB)
-							result.code=0;
+							result.success=false;
+							result.message=errB;
 							}else{
 								console.log("succeed")
+								result.success=true;
 								result.code=1;
-					result.data=doc;
+					result.data=doc[0];
 								}
 							returnFunction();	
 						})
 					
 					}else{
-						result.code=0;
+						result.success=false;
+						result.message=errA;
 						returnFunction();
 						}
 				
 				})
-			}else{result.code=0;
+			}else{result.success=false;
+						result.message=err;
 			returnFunction();
 			}
 		})
@@ -242,7 +248,12 @@ function register(socket,data,fn){
 	//	"company":"公司",/*公司*/
 	//	"password":"123456"/*密码*/
 	//}
-	var result={code:0};
+	var result={
+		success:false,
+		code:0,
+		message:"",
+		data:{}
+		};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("client_register",result);
@@ -256,7 +267,8 @@ function register(socket,data,fn){
 	newClient.save(function(err,Clientsc){
 		console.log(Clientsc)
 		if(err){
-			result.code=0;
+			result.success=false;
+			result.message=err;
 			returnFn();
 			}else{
 				var newPassword=new data_mg.client_password({
@@ -266,28 +278,31 @@ function register(socket,data,fn){
 				newPassword.save(function(errA,Passsc){
 					console.log(Passsc)
 					if(errA){
-						result.code=0
+						result.success=false;
+						result.message=errA;
 						returnFn();
 						}else{
 							data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errB){
 								if(errB){
-									result.code=0;
+									result.success=false;
+									result.message=errB;
 									returnFn();
 								}else{
 									var bindData=new data_mg.bind({"id":data.data.id,"phone":true,"email":false})
 									bindData.save(function(errC){
 										if(errC){
-											console.log(errC);
-											result.code=0;
+											result.success=false;
+											result.message=errC;
 											returnFn();
 											}else{
 												var saveQ=new data_mg.saveQuestion({"id":data.data.id,"question1":"0","question2":"0","answer1":"","answer2":""})
 												saveQ.save(function(errD){
 													if(errD){
-														console.log(errD)
-														result.code=0
+														result.success=false;
+														result.message=errD;
 														}else{
-														result.code=1;	
+														result.success=true;
+														result.code=0;	
 														}
 														returnFn();
 													})
