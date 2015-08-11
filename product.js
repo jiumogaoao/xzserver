@@ -51,6 +51,7 @@ function add(socket,data,fn){
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
+		console.log(data.data)
 	var result={
 		success:false,
 		code:0,
