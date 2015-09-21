@@ -36,7 +36,11 @@ function checkUser(socket,data,fn){
 	console.log("client/checkUser");
 	console.log(data.data);
 	//data.data="name";
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("client_checkUser",result);
@@ -46,15 +50,17 @@ function checkUser(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	data_mg.client.find({userName:data.data},function(err,doc){
+	data_mg.client.find({userName:data.data.userName},function(err,doc){
 		if(err){
-			result.code=0;
+			result.success=false;
+			result.message="搜索用户名出错";
 			returnFn();
 			}else{
 				if(doc&&doc.length){
-			result.code=0
+			result.success=false;
+			result.message="该用户名已注册";
 			}else{
-				result.code=1
+				result.success=true;
 				}
 			returnFn();
 				}
@@ -66,7 +72,11 @@ function checkUserName(socket,data,fn){
 	console.log("client/checkUserName");
 	console.log(data.data);
 	//data.data="name";
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("client_checkUser",result);
@@ -76,16 +86,20 @@ function checkUserName(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	data_mg.client.find({userName:data.data},function(err,doc){
+	data_mg.client.find({userName:data.data.userName},function(err,doc){
 		if(err){
-			result.code=0;
+			console.log(err);
+			result.success=false;
+			result.message="检查用户名出错";
 			returnFn();
 			}else{
 				if(doc&&doc.length){
+			result.success=true;
 			result.code=1
 			result.data=doc
 			}else{
-				result.code=0
+				result.success=false;
+				result.message="没该用户"
 				}
 			returnFn();
 				}
@@ -97,7 +111,11 @@ function checkUserName(socket,data,fn){
 function checkPhone(socket,data,fn){
 	console.log("client/checkPhone");
 	console.log(data.data)
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("client_checkPhone",result);
@@ -107,15 +125,17 @@ function checkPhone(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	data_mg.client.find({phone:data.data},function(err,doc){
+	data_mg.client.find({phone:data.data.phone},function(err,doc){
 		if(err){
-			result.code=0;
+			result.success=false;
+			result.message="搜索手机号出错";
 			returnFn();
 			}else{
 				if(doc&&doc.length){
-			result.code=0
+			result.success=false;
+			result.message="该手机号已注册";
 			}else{
-				result.code=1
+				result.success=true;
 				}
 				returnFn();
 				}
@@ -128,7 +148,13 @@ function checkPhone(socket,data,fn){
 function checkEmail(socket,data,fn){
 	console.log("client/checkEmail");
 	console.log(data.data)
-	var result={code:0};
+	var result={
+		code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""
+		};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("client_checkEmail",result);
@@ -138,15 +164,18 @@ function checkEmail(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	data_mg.client.find({phone:data.data},function(err,doc){
+	data_mg.client.find({phone:data.data.email},function(err,doc){
 		if(err){
 			console.log(err);
+			result.success=false;
+			result.message="搜索邮箱出错"
 			returnFn();
 			}else{
 				if(doc&&doc.length){
-			result.code=0
+			result.success=false;
+			result.message="该邮箱已注册"
 			}else{
-				result.code=1
+				result.success=true;
 				}
 				returnFn();
 				}
@@ -166,9 +195,10 @@ function login(socket,data,fn){
 	console.log(data.data)
 	var result={
 					success:false,
-					code:0,
-					message:"",
-					data:{}
+		code:0,
+		message:"",
+		data:{},
+		time:0
 					};
 					
 	var returnFunction=function(){
@@ -200,7 +230,7 @@ function login(socket,data,fn){
 						if(errB){
 							console.log(errB)
 							result.success=false;
-							result.message=errB;
+							result.message="修改登录时间失败";
 							}else{
 								console.log("succeed")
 								result.success=true;
@@ -211,14 +241,16 @@ function login(socket,data,fn){
 						})
 					
 					}else{
+						console.log(errA)
 						result.success=false;
-						result.message=errA;
+						result.message="密码错误";
 						returnFunction();
 						}
 				
 				})
 			}else{result.success=false;
-						result.message=err;
+			console.log(err)
+						result.message="账号不存在";
 			returnFunction();
 			}
 		})
@@ -252,7 +284,8 @@ function register(socket,data,fn){
 		success:false,
 		code:0,
 		message:"",
-		data:{}
+		data:{},
+		time:0
 		};
 	var returnFn=function(){
 		if(socket){
@@ -267,8 +300,9 @@ function register(socket,data,fn){
 	newClient.save(function(err,Clientsc){
 		console.log(Clientsc)
 		if(err){
+			console.log(err)
 			result.success=false;
-			result.message=err;
+			result.message="添加用户失败";
 			returnFn();
 			}else{
 				var newPassword=new data_mg.client_password({
@@ -278,28 +312,32 @@ function register(socket,data,fn){
 				newPassword.save(function(errA,Passsc){
 					console.log(Passsc)
 					if(errA){
+						console.log(errA)
 						result.success=false;
-						result.message=errA;
+						result.message="添加密码失败";
 						returnFn();
 						}else{
 							data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errB){
 								if(errB){
+									console.log(errB)
 									result.success=false;
-									result.message=errB;
+									result.message="更新时间失败";
 									returnFn();
 								}else{
 									var bindData=new data_mg.bind({"id":data.data.id,"phone":true,"email":false})
 									bindData.save(function(errC){
 										if(errC){
+											console.log(errC)
 											result.success=false;
-											result.message=errC;
+											result.message="添加绑定信息失败";
 											returnFn();
 											}else{
 												var saveQ=new data_mg.saveQuestion({"id":data.data.id,"question1":"0","question2":"0","answer1":"","answer2":""})
 												saveQ.save(function(errD){
 													if(errD){
+														console.log(errD)
 														result.success=false;
-														result.message=errD;
+														result.message="添加安全问题失败";
 														}else{
 														result.success=true;
 														result.code=0;	
@@ -329,11 +367,18 @@ function resetKey(socket,data,fn){
 		data.data=JSON.parse(data.data)
 		}
 		console.log(data.data)
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
 	data_mg.client_password.update({"parentKey":data.data.id,"childKey":data.data.oldKey},{$set:{"childKey":data.data.newKey}},{},function(err){
 		if(err){
-			result.code=0
+			console.log(err)
+			result.success=false;
+			result.message="修改失败";
 			}else{
+				result.success=true;
 				result.code=1
 				}
 			if(socket){
@@ -351,10 +396,11 @@ function get(socket,data,fn){
 	console.log("client/get");
 	//data.data = 10086/*不用传*/
 	console.log(data.data)
-	var result={
-		code:0,
+	var result={code:0,
 		time:0,
-		data:[]
+		data:{},
+		success:false,
+		message:""
 		};
 		var returnFn=function(){
 			if(socket){
@@ -368,16 +414,21 @@ function get(socket,data,fn){
 		
 data_mg.updateTime.find({"parentKey":"client"},function(err,doc){
 	if(err){
-		result.code=0;
+		console.log(err);
+		result.success=false;
+		result.message="获取更新时间失败"
 		returnFn();
 	}else{
-		if(doc&&doc.length&&doc[0]>data.data){
+		if(doc&&doc.length&&doc[0]>data.data.time){
 			result.time=doc.childKey;
 			data_mg.client.$where('this.type != 2').exec(function(errA,docA){
 				if(errA){
-					result.code=0;
+					console.log(errA)
+					result.success=false;
+		result.message="获取用户失败"
 				}else{
 					if(docA){
+						result.success=true;
 						result.code=1
 						result.data=docA
 					}
@@ -385,7 +436,8 @@ data_mg.updateTime.find({"parentKey":"client"},function(err,doc){
 				returnFn();
 			})
 		}else{
-			result.code=2;
+			result.success=true;
+			result.code=0;
 			returnFn();
 		}
 	}
@@ -447,7 +499,11 @@ function edit(socket,data,fn){
 		data.data=JSON.parse(data.data)
 		}
 	console.log(data.data)
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("client_edit",result);
@@ -462,7 +518,8 @@ function edit(socket,data,fn){
 		console.log("更新回调")
 		if(err){
 			console.log(err)
-			result.code=0
+			result.success=false;
+			result.message="修改失败";
 			returnFn()
 		}else{
 			console.log("开始更新时间")
@@ -470,9 +527,11 @@ function edit(socket,data,fn){
 				console.log("更新回调")
 				if(errA){
 					console.log(errA)
-					result.code=0
+					result.success=false;
+			result.message="更新用户信息失败";
 				}else{
 					console.log("修改成功")
+					result.success=true;
 					result.code=1
 				}
 				returnFn();
@@ -485,7 +544,11 @@ function edit(socket,data,fn){
 function remove(socket,data,fn){
 	console.log("client/remove");
 	//data.data = "ddssfs"/*商品id*/
-	var result={code:1};
+	var result={success:false,
+		code:0,
+		message:"",
+		data:{},
+		time:0};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("client_edit",result);
@@ -495,16 +558,20 @@ function remove(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 	}
-	data_mg.client.remove({"id":data.data},function(err){
+	data_mg.client.remove({"id":data.data.id},function(err){
 		if(err){
-			result.code=0;
+			console.log(err)
+			result.success=false;
+			result.message="删除失败"
 			returnFn()
 		}else{
 			data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
 				if(errA){
-					result.code=0
+					console.log(errA)
+					result.message="更新信息失败"
+					result.success=false;
 				}else{
-					result.code=1
+					result.success=true;
 				}
 				returnFn()
 			})
@@ -514,7 +581,11 @@ function remove(socket,data,fn){
 };
 function getSafeQusetion(socket,data,fn){
 	console.log("client/getSafeQusetion");
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
 	function returnFn(){
 		if(socket){
 	 	socket.emit("client_getSafeQusetion",result);
@@ -524,11 +595,13 @@ function getSafeQusetion(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 		}
-	data_mg.saveQuestion.findOne({"id":data.data},function(err,doc){
+	data_mg.saveQuestion.findOne({"id":data.data.id},function(err,doc){
 		if(err){
 			console.log(err);
-			result.code=0
+			result.success=false
+			result.message="找不到该问题"
 			}else{
+				result.success=true;
 				result.code=1;
 				result.data=doc;
 				}
@@ -581,7 +654,13 @@ function bind(socket,data,fn){
 		data.data=JSON.parse(data.data)
 		}
 		console.log(data.data)
-	var result={code:0};
+	var result={
+		code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""
+		};
 	function returnFn(){
 		if(socket){
 	 	socket.emit("client_bind",result);
@@ -594,7 +673,8 @@ function bind(socket,data,fn){
 	data_mg.bindCode.findOne({"type":data.data.type,"number":data.data.number},function(err,doc){
 		if(err){
 			console.log(err);
-			result.code=0;
+			result.success=false;
+			result.message="号码错误"
 			returnFn();
 			}else{
 				if(doc){console.log("有数据")
@@ -602,23 +682,26 @@ function bind(socket,data,fn){
 						data_mg.bindCode.remove({"type":data.data.type,"number":data.data.number},function(errB){
 							if(errB){
 								console.log(errB);
-								result.code=0;
+								result.success=false;
+								result.message="删除数据错误"
 								returnFn();
 								}else{console.log("添加绑定")
 									var setTrue={};
 									setTrue[data.data.type]=true;
 									data_mg.bind.update({"id":data.data.id},{$set:setTrue},{},function(errC){
 										if(errC){
-											result.code=0;
+											result.success=false;
+											result.message="更新绑定数据错误"
 								returnFn();
 											}else{console.log("更新客户端")
 												var setType={};
 												setType[data.data.type]=data.data.number;
 												data_mg.client.update({"id":data.data.id},{$set:setType},{},function(errD){
 													if(errD){
-														result.code=0
+														result.success=false;
+														result.message="更新客户数据错误"
 														}else{
-															result.code=1
+															result.success=true;
 															}
 														returnFn();
 													})
@@ -630,11 +713,13 @@ function bind(socket,data,fn){
 							console.log("验证码不正确")
 							console.log(doc.code)
 							console.log(data.data.code)
-							result.code=0;
+							result.success=false;
+							result.message="验证码不正确"
 							returnFn();
 							}
 					}else{
-						result.code=0;
+						result.success=false;
+							result.message="没有该号"
 			returnFn();
 						}
 				}
@@ -647,7 +732,11 @@ function getBindCode(socket,data,fn){
 		data.data=JSON.parse(data.data);
 		}
 	console.log(data.data);
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
 	function returnFn(){
 		if(socket){
 	 	socket.emit("client_getBindCode",result);
@@ -658,7 +747,11 @@ function getBindCode(socket,data,fn){
 	 	}
 		}
 	data_mg.bindCode.findOne({"type":data.data.type,"number":data.data.number},function(err,doc){
-		if(err){console.log(err)}else{
+		if(err){console.log(err)
+		result.success=false;
+		result.message="搜索绑定码错误";
+		returnFn()
+		}else{
 			var code=Math.round(Math.random()*1000000)
 			console.log(code)
 			function sendMsg(){
@@ -680,7 +773,7 @@ function getBindCode(socket,data,fn){
 					res.on('data', function (chunk) {  
 					console.log(chunk)
 						result.code=1;
-						
+						result.success=true;
 							result.data=code;
 							console.log(code)
 							  returnFn()
@@ -688,7 +781,8 @@ function getBindCode(socket,data,fn){
 				});  
 				  
 				req.on('error', function (e) {  
-					result.code=0; 
+					result.success=false;
+		result.message="绑定码发送失败";
 					returnFn()
 				});  
 				  
@@ -703,7 +797,8 @@ function getBindCode(socket,data,fn){
 				data_mg.bindCode.update({"type":data.data.type,"number":data.data.number},{$set:{"code":code}},{},function(errA){
 					if(errA){
 						console.log(errA)
-						result.code=0;
+						result.success=false;
+		result.message="绑定码更新失败";
 						returnFn();
 						}else{
 							console.log(b);
@@ -722,10 +817,12 @@ var mailOptions = {
 smtpTransport.sendMail(mailOptions, function(error, info){
   if(error){
     console.log(error);
-	result.code=0;
+	result.success=false;
+		result.message="邮件发送失败";
 	 returnFn()
   }else{
     console.log("Message sent: " + info.response);
+	result.success=true;
 	result.code=1;
 							result.data=code;
 							  returnFn()
@@ -742,7 +839,8 @@ smtpTransport.sendMail(mailOptions, function(error, info){
 					codebind.save(function(errA){
 						if(errA){
 						console.log(errA)
-						result.code=0;
+						result.success=false;
+		result.message="添加绑定码失败";
 						returnFn();
 						}else{
 							console.log(b);
@@ -761,10 +859,12 @@ var mailOptions = {
 smtpTransport.sendMail(mailOptions, function(error, info){
   if(error){
     console.log(error);
-	result.code=0;
+	result.success=false;
+		result.message="邮件发送失败";
 	 returnFn()
   }else{
     console.log("Message sent: " + info.response);
+	result.success=true;
 	result.code=1;
 							result.data=code;
 							  returnFn()
@@ -785,7 +885,11 @@ smtpTransport.sendMail(mailOptions, function(error, info){
 function getBind(socket,data,fn){
 	console.log("client/getBind");
 	console.log(data.data)
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
 	function returnFn(){
 		if(socket){
 	 	socket.emit("client_getBind",result);
@@ -796,16 +900,19 @@ function getBind(socket,data,fn){
 	 	}
 		}
 		console.log("获取绑定信息")
-	data_mg.bind.findOne({id:data.data},function(err,doc){
+	data_mg.bind.findOne({id:data.data.id},function(err,doc){
 		if(err){
 			console.log(err);
-			result.code=0;
+			result.success=false;
+			result.message="搜索绑定信息出错"
 			}else{
 				if(doc){
+					result.success=true;
 					result.code=1;
 					result.data=doc;
 					}else{console.log("找不到绑定信息")
-						result.code=0;
+						result.success=false;
+						result.message="找不到该信息"
 						}
 				}
 				returnFn()

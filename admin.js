@@ -62,7 +62,7 @@ function add(socket,data,fn){
 		"redPacket":"0"/*红包管理*/
 		}
 		
-	var result={code:0};
+	var result={code:0,message:"",data:{}};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("admin_add",result);
@@ -78,6 +78,8 @@ function add(socket,data,fn){
 		console.log(Clientsc)
 		if(err){
 			result.code=0;
+			result.message="添加用户";
+			console.log(err);
 			returnFn();
 			}else{
 				var newPassword=new data_mg.client_password({
@@ -87,12 +89,16 @@ function add(socket,data,fn){
 				newPassword.save(function(errA,Passsc){
 					console.log(Passsc)
 					if(errA){
-						result.code=0
+						result.code=0;
+						result.message="添加密码失败";
+						console.log(errA);
 						returnFn();
 						}else{
 							data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errB){
 								if(errB){
-									result.code=0
+									result.code=0;
+									result.message="更新用户失败";
+									console.log(errB);
 									returnFn();
 								}else{
 									/*******************************/
@@ -101,11 +107,15 @@ function add(socket,data,fn){
 									newAdmin.save(function(err){
 										if(err){
 											result.code=0;
-											returnFn()
+											result.message="添加管理员失败";
+											console.log(err);
+											returnFn();
 										}else{
 											data_mg.updateTime.update({"parentKey":"admin"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
 												if(errC){
 													result.code=0
+													result.message="更新管理员失败";
+													console.log(errC)
 												}else{
 													result.code=1
 												}

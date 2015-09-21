@@ -21,16 +21,18 @@ function get(socket,data,fn){
 //return;
 	data_mg.updateTime.find({"parentKey":"promotion"},function(err,doc){
 		if(err){
+			console.log(err)
 			result.success=false;
-			result.message=err;
+			result.message="获取更新时间失败";
 			returnFn()
 		}else{
-			if(doc&&doc.length&&doc[0].childKey>data.data){
+			if(doc&&doc.length&&doc[0].childKey>data.data.time){
 				result.time=doc.childKey;
 				data_mg.promotion.find({},function(errC,docC){
 									if(errC){
+										console.log(errC)
 										result.success=false;
-										result.message=errC;
+										result.message="获取宣传信息失败";
 										returnFn()
 									}else{
 										result.success=true;
@@ -40,7 +42,8 @@ function get(socket,data,fn){
 									}
 								})
 			}else{
-				result.code=2
+				result.success=true;
+				result.code=0
 				returnFn()
 			}
 		}
@@ -55,12 +58,11 @@ function edit(socket,data,fn){
 		data.data=JSON.parse(data.data);
 		}
 		console.log(data.data)
-	var result={
+	var result={code:0,
+		time:0,
+		data:{},
 		success:false,
-		code:0,
-		message:"",
-		data:{}
-		};
+		message:""};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("promotion_edit",result);
@@ -75,13 +77,13 @@ console.log("更新宣传")
 			if(err){
 				console.log(err)
 				result.success=false;
-				result.message=err;
+				result.message="修改宣传失败";
 			returnFn();
 			}else{console.log("更新时间")
 				data_mg.updateTime.update({"parentKey":"promotion"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
 					if(errA){console.log(errA)
 						result.success=false;
-						result.message=errA;
+						result.message="更新宣传时间失败";
 					}else{
 						result.code=1;
 						result.success=true;

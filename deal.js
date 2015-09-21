@@ -1,6 +1,10 @@
 function get(socket,data,fn){
 	console.log("deal/get");
-	var result={code:1};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:true,
+		message:""};
 if(socket){
 	 	socket.emit("deal_getdeal",result);
 	 }
@@ -16,7 +20,11 @@ function add(socket,data,fn){
 		data.data=JSON.parse(data.data)
 		}
 		console.log(data.data)
-	var result={code:0};
+	var result={success:false,
+		code:0,
+		message:"",
+		data:{},
+		time:0};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_add",result);
@@ -30,14 +38,16 @@ function add(socket,data,fn){
 	deal.save(function(err){
 		if(err){
 			console.log(err)
-			result.code=0;
+			result.success=false;
+			result.message=err;
 			returnFn();
 			}else{
 				console.log("开始修改product")
 				data_mg.product.findOne({id:data.data.productId},function(errA,product){
 					if(errA){
 						console.log(errA);
-						result.code=0;
+						result.success=false;
+						result.message="没有该产品";
 						returnFn();
 						}else{
 							var payedCount=product.payedCount+data.data.count;
@@ -46,16 +56,20 @@ function add(socket,data,fn){
 								
 								if(errB){
 									console.log(errB);
-									result.code=0;
+									result.success=false;
+									result.message="更新产品数量失败";
 									returnFn();
 									}else{
 										console.log("更新product时间")
-										data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
+										var lastTime=new Date().getTime();
+										data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":lastTime}},{},function(errC){
 											if(errC){
 												console.log(errC);
-												result.code=0;
+												result.success=false;
+												result.time=lastTime;
+												result.message="更新产品时间失败";
 												}else{
-													result.code=1;
+													result.success=true;
 													}
 													returnFn();
 											})
@@ -74,7 +88,11 @@ function edit(socket,data,fn){
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("deal_edit",result);
@@ -87,15 +105,17 @@ function edit(socket,data,fn){
 		data_mg.deal.update({"id":data.data.id},{$set:data.data},{},function(err){
 			if(err){
 				console.log(err)
-				result.code=0;
+				result.success=false;
+				result.message="修改失败";
 				returnFn();
 				}else{
 					if(data.data.endTime){
 						console.log("开始修改product")
 				data_mg.product.findOne({id:data.data.productId},function(errA,product){
 					if(errA){
-						console.log(errA);
-						result.code=0;
+						console.log(errA)
+						result.success=false;
+						result.message="没有该产品";
 						returnFn();
 						}else{
 							var payedCount=product.payedCount-data.data.count;
@@ -104,15 +124,18 @@ function edit(socket,data,fn){
 								
 								if(errB){
 									console.log(errB);
-									result.code=0;
+									result.success=false;
+									result.message="修改产品出错";
 									returnFn();
 									}else{
 										console.log("更新product时间")
 										data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
 											if(errC){
 												console.log(errC);
-												result.code=0;
+												result.success=false;
+												result.message="更新产品出错";
 												}else{
+													result.success=true;
 													result.code=1;
 													}
 													returnFn();
@@ -122,7 +145,7 @@ function edit(socket,data,fn){
 							}
 					})
 						}else{
-							result.code=1;
+							result.success=true;
 							returnFn();
 							}
 					
@@ -134,7 +157,11 @@ function edit(socket,data,fn){
 
 function remove(socket,data,fn){
 	console.log("deal/remove");
-	var result={code:1};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:true,
+		message:""};
 if(socket){
 	 	socket.emit("deal_remove",result);
 	 }
@@ -147,7 +174,11 @@ if(socket){
 function list(socket,data,fn){
 	console.log("deal/getdealList");
 	console.log(data.data)
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
 	var returnFN=function(){
 		if(socket){
 	 	socket.emit("deal_getdealList",result);
@@ -160,10 +191,12 @@ function list(socket,data,fn){
 		data_mg.deal.find({userId:data.data},function(err,doc){
 			if(err){
 				console.log(err)
-				result.code=0
+				result.success=false;
+				result.message("获取交易列表失败")
 				}else{
-					result.code=1;
-					result.data=doc
+					result.success=true;
+					result.data=doc;
+					result.code=1
 					}
 			returnFN();		
 			})
