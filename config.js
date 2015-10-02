@@ -72,7 +72,8 @@ function edit(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-		console.log("更新配置")
+		if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
+			console.log("更新配置")
 	data_mg.config.update({},{$set:data.data},{},function(err){
 		if(err){console.log(err)
 			result.success=false;
@@ -90,6 +91,12 @@ function edit(socket,data,fn){
 					})
 				}
 		})
+			}else{
+		result.success=false;
+				result.message="登陆信息超时,或不是管理员帐号";
+				returnFn();
+		}
+		
 		
 };
 
