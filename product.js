@@ -1,6 +1,9 @@
 function get(socket,data,fn){
 	console.log("product/get");
-	console.log(data)
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
 	//data.data = 10086/*不用传*/
 	var result={
 		code:0,
@@ -48,7 +51,7 @@ function get(socket,data,fn){
 		})
 		
 };
-
+/******************************************************************************************/
 function add(socket,data,fn){
 	console.log("product/add");
 	if(typeof(data.data)=="string"){
@@ -71,8 +74,8 @@ function add(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-		console.log("创建商品")
-	var newProduct=new data_mg.product(data.data);
+	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
+		var newProduct=new data_mg.product(data.data);
 	newProduct.save(function(err){
 		if(err){console.log(err)
 			result.success=false;
@@ -92,9 +95,15 @@ function add(socket,data,fn){
 					})
 				}
 		})
+		}else{
+		result.success=false;
+				result.message="登陆信息超时,或不是管理员帐号";
+				returnFn();
+		}
+	
 		
 };
-
+/**************************************************************************************/
 function edit(socket,data,fn){
 	console.log("product/edit");
 	if(typeof(data.data)=="string"){
@@ -115,7 +124,8 @@ function edit(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-		console.log("更新产品")
+	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
+			console.log("更新产品")
 	data_mg.product.update({"id":data.data.id},{$set:data.data},{},function(err){
 		if(err){console.log(err)
 			result.success=false;
@@ -134,9 +144,15 @@ function edit(socket,data,fn){
 					})
 				}
 		})
+		}else{
+		result.success=false;
+				result.message="登陆信息超时,或不是管理员帐号";
+				returnFn();
+		}	
+	
 		
 };
-
+/*********************************************************************************************/
 function remove(socket,data,fn){
 	console.log("product/remove");
 	
@@ -154,7 +170,19 @@ function remove(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 		}
-	data_mg.product.remove({"id":data.data.id},function(err){
+	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
+		data_mg.product.findOne({"id":data.data.id},function(errB,doc){
+			if(errB){
+				result.success=false;
+				result.message="没有该产品";
+				returnFn();
+				}else{
+					if(doc.payedMoney!=0){
+						result.success=false;
+						result.message="改产品金额不为0,无法删除";
+						returnFn()
+						}else{
+							data_mg.product.remove({"id":data.data.id},function(err){
 		if(err){
 			console.log(err)
 			result.success=false;
@@ -173,6 +201,16 @@ function remove(socket,data,fn){
 					})
 				}
 		})
+							}
+					}
+			});
+		
+		}else{
+		result.success=false;
+				result.message="登陆信息超时,或不是管理员帐号";
+				returnFn();
+		}
+	
 	
 };
 

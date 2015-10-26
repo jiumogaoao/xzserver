@@ -32,8 +32,50 @@ var smtpTransport = nodemailer.createTransport({
 /************************************************************************/
 
 
+function getToken(socket,data,fn){
+	console.log("client/getToken");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data);
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_getToken",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+	}
+	if(data.data.token&&tokenArry[data.data.token]){
+		result.data=tokenArry[data.data.token];
+		}else{
+		var token=uuid();
+	tokenArry[token]={
+		token:token,
+		user:{}
+		}
+	var clearTime=setTimeout(function(){
+		delete tokenArry[token];
+		},1000*60*60*2);
+	result.data=tokenArry[token];
+			}
+	result.success=true;
+	result.code=1;
+	result.time=new Date().getTime();
+	returnFn();	
+	};
+/*******************************************************************/
 function checkUser(socket,data,fn){
 	console.log("client/checkUser");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
 	console.log(data.data);
 	//data.data="name";
 	var result={code:0,
@@ -57,8 +99,8 @@ function checkUser(socket,data,fn){
 			returnFn();
 			}else{
 				if(doc&&doc.length){
-			result.success=false;
-			result.message="该用户名已注册";
+			result.success=true;
+			result.data=doc[0].id;
 			}else{
 				result.success=true;
 				}
@@ -68,48 +110,12 @@ function checkUser(socket,data,fn){
 		})
 		
 };
-function checkUserName(socket,data,fn){
-	console.log("client/checkUserName");
-	console.log(data.data);
-	//data.data="name";
-	var result={code:0,
-		time:0,
-		data:{},
-		success:false,
-		message:""};
-	var returnFn=function(){
-		if(socket){
-	 	socket.emit("client_checkUser",result);
-	 }
-	 	else if(fn){
-	 		var returnString = JSON.stringify(result);
-	 		fn(returnString);
-	 	}
-		}
-	data_mg.client.find({userName:data.data.userName},function(err,doc){
-		if(err){
-			console.log(err);
-			result.success=false;
-			result.message="检查用户名出错";
-			returnFn();
-			}else{
-				if(doc&&doc.length){
-			result.success=true;
-			result.code=1
-			result.data=doc
-			}else{
-				result.success=false;
-				result.message="没该用户"
-				}
-			returnFn();
-				}
-		
-		})
-	
-	}
-
+/********************************************************************/
 function checkPhone(socket,data,fn){
 	console.log("client/checkPhone");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
 	console.log(data.data)
 	var result={code:0,
 		time:0,
@@ -132,22 +138,23 @@ function checkPhone(socket,data,fn){
 			returnFn();
 			}else{
 				if(doc&&doc.length){
-			result.success=false;
-			result.message="该手机号已注册";
+			result.success=true;
+			result.data=doc[0].id;
 			}else{
 				result.success=true;
 				}
 				returnFn();
 				}
-		
-		
 		})
-		
 };
-
+/********************************************************************/
 function checkEmail(socket,data,fn){
 	console.log("client/checkEmail");
-	console.log(data.data)
+	
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+		console.log(data.data)
 	var result={
 		code:0,
 		time:0,
@@ -172,29 +179,28 @@ function checkEmail(socket,data,fn){
 			returnFn();
 			}else{
 				if(doc&&doc.length){
-			result.success=false;
-			result.message="该邮箱已注册"
+			result.success=true;
+			result.data=doc[0].id;
 			}else{
 				result.success=true;
 				}
 				returnFn();
 				}
-		
-			
 		})
 };
-
+/***************************************************************************/
 function login(socket,data,fn){
 	console.log(data);
-	console.log("client/login");
-	//data.data = {"userName":"aa",/*登录名/手机/邮箱*/
-	//			"passWord":"djisk"}/*密码*/
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
+	console.log("client/login");
+	//data.data = {"token":"xxxx",:"userName":"aa",/*登录名/手机/邮箱*/
+	//			"passWord":"djisk"}/*密码*/
+	
 	console.log(data.data)
 	var result={
-					success:false,
+		success:false,
 		code:0,
 		message:"",
 		data:{},
@@ -235,6 +241,7 @@ function login(socket,data,fn){
 								console.log("succeed")
 								result.success=true;
 								result.code=1;
+								tokenArry[data.data.token].user=doc[0];
 					result.data=doc[0];
 								}
 							returnFunction();	
@@ -256,7 +263,7 @@ function login(socket,data,fn){
 		})
 		
 };
-
+/*******************************************************************************************************/
 function register(socket,data,fn){
 	console.log("client/register");
 	if(typeof(data.data)=="string"){
@@ -338,11 +345,48 @@ function register(socket,data,fn){
 														console.log(errD)
 														result.success=false;
 														result.message="添加安全问题失败";
-														}else{
-														result.success=true;
-														result.code=0;	
-														}
 														returnFn();
+														}else{
+														var newAccount=new data_mg.account({
+														"parentKey":data.data.id,//图片id
+														"childKey":"0",//路径
+														});	
+														newAccount.save(function(errF){
+															if(errF){
+																console.log(errF);
+																result.success=false;
+																result.message="创建帐户失败";
+																}else{
+																result.success=true;
+																result.code=0;
+																if(data.data.invite){
+																	var newInvite=new data_mg.invite({
+																		"id":uuid(),/*id*/
+																		"inviter":data.data.invite,/*邀请人id*/
+																		"user":data.data.id,/*被邀请人id*/
+																		"money":10,/*奖金*/
+																		"type":0/*类型*/
+																		});
+																		newInvite.save(function(errE){
+																			if(errE){
+																				console.log(errE);
+																				}else{
+																					data_mg.account.findOne({"parentKey":data.data.invite},function(errG,docG){
+																						if(errG){console.log(errG)}
+																						if(docG){
+																							data_mg.account.update({"parentKey":data.data.invite},{$set:{"childKey":(Number(docG.childKey)+10)+""}},function(errH){
+																								console.log(errH)
+																								})
+																							}
+																						});
+																					}
+																			});
+																	}	
+																}
+															returnFn();	
+															});
+															
+														}
 													})
 												
 												}
@@ -360,7 +404,7 @@ function register(socket,data,fn){
 		})
 	
 };
-
+/*******************************************************************************************************/
 function resetKey(socket,data,fn){
 	console.log("client/resetKey");
 	if(typeof(data.data)=="string"){
@@ -372,7 +416,17 @@ function resetKey(socket,data,fn){
 		data:{},
 		success:false,
 		message:""};
-	data_mg.client_password.update({"parentKey":data.data.id,"childKey":data.data.oldKey},{$set:{"childKey":data.data.newKey}},{},function(err){
+		function returnFn(){
+			if(socket){
+	 	socket.emit("client_resetKey",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+			}
+		if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
+			data_mg.client_password.update({"parentKey":tokenArry[data.data.token].user.id,"childKey":data.data.oldKey},{$set:{"childKey":data.data.newKey}},{},function(err){
 		if(err){
 			console.log(err)
 			result.success=false;
@@ -381,20 +435,23 @@ function resetKey(socket,data,fn){
 				result.success=true;
 				result.code=1
 				}
-			if(socket){
-	 	socket.emit("client_resetKey",result);
-	 }
-	 	else if(fn){
-	 		var returnString = JSON.stringify(result);
-	 		fn(returnString);
-	 	}
+			returnFn();
 		})
+			}else{
+				result.success=false;
+				result.message="登陆信息超时,请重新登陆";
+				returnFn();
+				}
+	
 		
 };
-
+/*************************************************************************************/
 function get(socket,data,fn){
 	console.log("client/get");
 	//data.data = 10086/*不用传*/
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
 	console.log(data.data)
 	var result={code:0,
 		time:0,
@@ -411,8 +468,8 @@ function get(socket,data,fn){
 		 		fn(returnString);
 		 	}
 		}
-		
-data_mg.updateTime.find({"parentKey":"client"},function(err,doc){
+	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
+		data_mg.updateTime.find({"parentKey":"client"},function(err,doc){
 	if(err){
 		console.log(err);
 		result.success=false;
@@ -443,55 +500,16 @@ data_mg.updateTime.find({"parentKey":"client"},function(err,doc){
 	}
 	
 })
+		}else{
+			result.success=false;
+			result.message="登录超时或不是管理员帐号";
+			returnFn();
+			}	
+
 		
 };
 
-function add(socket,data,fn){
-	console.log("client/add");
-	data.data = {
-		"id":uuid(),/*id*/
-		"type":1,/*类型,1普通用户2管理用户*/
-		"userName":"用户名",/*用户名*/
-		"image":"http://",/*头像*/
-		"place":"地址",/*地址*/
-		"phone":"18239208903",/*手机*/
-		"email":"fhdj@email.com",/*邮箱*/
-		"name":"真实名",/*真实姓名*/
-		"contacts":"联系人",/*联系人*/
-		"contactsPhone":"2738948393",/*联系人电话*/
-		"record":"本科",/*学历*/
-		"university":"华农",/*毕业院校*/
-		"job":"这个职位",/*职位*/
-		"company":"公司"/*公司*/
-	}
-	var result={code:1};
-	var returnFn=function(){
-		if(socket){
-	 	socket.emit("client_add",result);
-	 }
-	 	else if(fn){
-	 		var returnString = JSON.stringify(result);
-	 		fn(returnString);
-	 	}
-	}
-	var newClient=new data_mg.client(data.data);
-	newClient.save(function(err){
-		if(err){
-			result.code=0;
-			returnFn()
-		}else{
-			data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
-				if(errA){
-					result.code=0
-				}else{
-					result.code=1;
-				}
-				returnFn();
-			})
-		}
-	})
-		
-};
+/**************************************************************************************/
 
 function edit(socket,data,fn){
 	console.log("client/edit");
@@ -513,8 +531,8 @@ function edit(socket,data,fn){
 	 		fn(returnString);
 	 	}
 	}
-	console.log("开始更新")
-	data_mg.client.update({"id":data.data.id},{$set:data.data},{},function(err){
+	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
+		data_mg.client.update({"id":data.data.id},{$set:data.data},{},function(err){
 		console.log("更新回调")
 		if(err){
 			console.log(err)
@@ -538,12 +556,20 @@ function edit(socket,data,fn){
 			})
 		}
 	})
-		
+		}else{
+		result.success=false;
+		result.message="登录超时,请重新登录";
+		returnFn();
+		}	
 };
-
+/***********************************************************************************************/
 function remove(socket,data,fn){
 	console.log("client/remove");
 	//data.data = "ddssfs"/*商品id*/
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
 	var result={success:false,
 		code:0,
 		message:"",
@@ -558,7 +584,8 @@ function remove(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 	}
-	data_mg.client.remove({"id":data.data.id},function(err){
+	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
+		data_mg.client.remove({"id":data.data.id},function(err){
 		if(err){
 			console.log(err)
 			result.success=false;
@@ -577,10 +604,21 @@ function remove(socket,data,fn){
 			})
 		}
 	})
+		}else{
+		result.success=false;
+		result.message="登录超时,请重新登录";
+		returnFn();
+		}	
+	
 	
 };
+/*************************************************************************************************/
 function getSafeQusetion(socket,data,fn){
 	console.log("client/getSafeQusetion");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
 	var result={code:0,
 		time:0,
 		data:{},
@@ -603,19 +641,28 @@ function getSafeQusetion(socket,data,fn){
 			}else{
 				result.success=true;
 				result.code=1;
-				result.data=doc;
+				result.data={"question1":doc.question1,
+		"question2":doc.question2};
 				}
 			returnFn()
 		})
 	
 	
 };
+/**************************************************************************/
 function setSafeQusetion(socket,data,fn){
 	console.log("client/setSafeQusetion");
 	if(data.data&&typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
-	var result={code:0};
+	console.log(data.data);
+	var result={
+		code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""
+		};
 	function returnFn(){
 		if(socket){
 	 	socket.emit("client_setSafeQusetion",result);
@@ -625,29 +672,63 @@ function setSafeQusetion(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 		}
-	data_mg.saveQuestion.update({"id":data.data.id},{"$set":data.data},{},function(err){
+	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
+		data_mg.saveQuestion.update({"id":tokenArry[data.data.token].user.id},{"$set":data.data},{},function(err){
 		if(err){
 			console.log(err)
-			result.code=0
+			result.success=false;
+			result.message="修改错误";
 			}else{
-				result.code=1
+				result.success=true;
 				}
 			returnFn()	
-		})	
-	
+		})
+		}else{
+		result.success=false;
+		result.message="登录超时,请重新登录";
+		returnFn();
+		}	
 };
+/**********************************************************************************/
 function checkSafeQusetion(socket,data,fn){
 	console.log("client/checkSafeQusetion");
-	var result={code:1};
-if(socket){
+	if(data.data&&typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data);
+	var result={
+		code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""
+		};
+		function returnFn(){
+			if(socket){
 	 	socket.emit("client_checkSafeQusetion",result);
 	 }
 	 	else if(fn){
 	 		var returnString = JSON.stringify(result);
 	 		fn(returnString);
-	 	}		
+	 	}
+			}
+	data_mg.saveQuestion.findOne({id:data.data.id},function(err,doc){
+		if(err){
+			console.log(err);
+			result.success=false;
+			result.message="找不到该用户安全问题";
+			}else{
+				if(data.data.answer1==doc.answer1&&data.data.answer2==doc.answer2){
+					result.success=true;
+					}else{
+						result.success=false;
+						result.message="回答错误";
+						}
+				}
+			returnFn();
+		});
 };
-
+/**********************************************************************************/
 function bind(socket,data,fn){
 	console.log("client/bind");
 	if(typeof(data.data)=="string"){
@@ -670,7 +751,8 @@ function bind(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	data_mg.bindCode.findOne({"type":data.data.type,"number":data.data.number},function(err,doc){
+	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
+		data_mg.bindCode.findOne({"type":data.data.type,"number":data.data.number},function(err,doc){
 		if(err){
 			console.log(err);
 			result.success=false;
@@ -688,7 +770,7 @@ function bind(socket,data,fn){
 								}else{console.log("添加绑定")
 									var setTrue={};
 									setTrue[data.data.type]=true;
-									data_mg.bind.update({"id":data.data.id},{$set:setTrue},{},function(errC){
+									data_mg.bind.update({"id":tokenArry[data.data.token].user.id},{$set:setTrue},{},function(errC){
 										if(errC){
 											result.success=false;
 											result.message="更新绑定数据错误"
@@ -696,7 +778,7 @@ function bind(socket,data,fn){
 											}else{console.log("更新客户端")
 												var setType={};
 												setType[data.data.type]=data.data.number;
-												data_mg.client.update({"id":data.data.id},{$set:setType},{},function(errD){
+												data_mg.client.update({"id":tokenArry[data.data.token].user.id},{$set:setType},{},function(errD){
 													if(errD){
 														result.success=false;
 														result.message="更新客户数据错误"
@@ -724,8 +806,14 @@ function bind(socket,data,fn){
 						}
 				}
 		})	
+		}else{
+		result.success=false;
+		result.message="登录超时,请重新登录";
+		returnFn();
+		}		
+	
 };
-
+/***************************************************************************************/
 function getBindCode(socket,data,fn){
 	console.log("client/getBindCode");
 	if(typeof(data.data)=="string"){
@@ -881,9 +969,12 @@ smtpTransport.sendMail(mailOptions, function(error, info){
 		})
 		
 };
-
+/******************************************************************************/
 function getBind(socket,data,fn){
 	console.log("client/getBind");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data);
+		}
 	console.log(data.data)
 	var result={code:0,
 		time:0,
@@ -899,8 +990,8 @@ function getBind(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-		console.log("获取绑定信息")
-	data_mg.bind.findOne({id:data.data.id},function(err,doc){
+	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
+		data_mg.bind.findOne({id:tokenArry[data.data.token].user.id},function(err,doc){
 		if(err){
 			console.log(err);
 			result.success=false;
@@ -917,22 +1008,15 @@ function getBind(socket,data,fn){
 				}
 				returnFn()
 		});	
-};
-function getCard(socket,data,fn){
-	console.log(data);
-	console.log(client/getCard);
-	var result={code:1,data:[]};
-	function returnFn(){
-		if(socket){
-	 	socket.emit("client_getCard",result);
-	 }
-	 	else if(fn){
-	 		var returnString = JSON.stringify(result);
-	 		fn(returnString);
-	 	}
+		}else{
+		result.success=false;
+		result.message="登录超时,请重新登录";
+		returnFn();
 		}
-		returnFn()
-	}
+	
+		
+};
+
 exports.checkUserName=checkUserName;
 exports.getSafeQusetion=getSafeQusetion;
 exports.setSafeQusetion=setSafeQusetion;

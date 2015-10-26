@@ -3,18 +3,7 @@ var EventEmitter = require('events').EventEmitter;
 var event = new EventEmitter(); 
 var catchs = {};
 var callBackFn = function(data){}
-var server = {
-   		deal : require('./deal'),
- 		admin : require('./admin'),
- 		announcement : require('./announcement'),
- 		client : require('./client'),
- 		company : require('./company'),
- 		product : require('./product'),
- 		promotion : require('./promotion'),
- 		recruit : require('./recruit'),
- 		redPacket : require('./redPacket'),
-		config : require('./config')
-   }
+
 event.on('server', function() {
 	if(catchs.model&&catchs.action){
 		if(server[catchs.model]&&server[catchs.model][catchs.action]){
