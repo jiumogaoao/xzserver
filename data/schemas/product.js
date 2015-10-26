@@ -16,8 +16,12 @@ var MemberSchema = new mongoose.Schema({
 		"more":Number,/*增值*/
 		"dsc":String,//简介
 		"change":Number,//债权转移费用
-		"type":String,
-		"obj":String,
-		"tag":String
+		"invite":String,/*介绍人*/
+		"inviteMoney":String,/*介绍费*/
+		"object":String/*项目*/
+		"type":String,/*项目类型*/
+		"tag":String,/*标签*/
+		"orderTime":Number,/*预约时间*/
+		"passNumber":Number/*通过份数*/
 	})
 module.exports = MemberSchema;
