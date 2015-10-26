@@ -7,6 +7,7 @@ var MemberSchema = new mongoose.Schema({
 		"price":Number,/*金额*/
 		"payedCount":Number,/*已众筹笔数*/
 		"payedMoney":Number,/*已众筹金额*/
+		"payedMember":Number,/*已众筹人数*/
 		"copy":Number,/*份数*/
 		"maxTime":Number,/*持有期限*/
 		"tax":Number,/*税费预算*/
@@ -16,6 +17,7 @@ var MemberSchema = new mongoose.Schema({
 		"dsc":String,//简介
 		"change":Number,//债权转移费用
 		"type":String,
+		"obj":String,
 		"tag":String
 	})
 module.exports = MemberSchema;
