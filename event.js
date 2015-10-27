@@ -5,8 +5,9 @@ var catchs = {};
 var callBackFn = function(data){}
 
 event.on('server', function() {
-	if(catchs.model&&catchs.action){
-		if(server[catchs.model]&&server[catchs.model][catchs.action]){
+	console.log("server");
+	if(catchs.model&&catchs.action){console.log(catchs);
+		if(server[catchs.model]&&server[catchs.model][catchs.action]){console.log("actionFind");
 			server[catchs.model][catchs.action](null,catchs,callBackFn);
 			}
 		

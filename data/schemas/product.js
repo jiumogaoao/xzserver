@@ -18,10 +18,13 @@ var MemberSchema = new mongoose.Schema({
 		"change":Number,//债权转移费用
 		"invite":String,/*介绍人*/
 		"inviteMoney":String,/*介绍费*/
-		"object":String/*项目*/
+		"object":String,/*项目*/
 		"type":String,/*项目类型*/
 		"tag":String,/*标签*/
 		"orderTime":Number,/*预约时间*/
-		"passNumber":Number/*通过份数*/
+		"passNumber":Number,/*通过份数*/
+		"place":String,/*地点*/
+		"buildtype":String,/*建筑类型*/
+		"buildState":String/*建筑状态*/
 	})
 module.exports = MemberSchema;

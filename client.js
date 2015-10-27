@@ -52,15 +52,20 @@ function getToken(socket,data,fn){
 	 		fn(returnString);
 	 	}
 	}
-	if(data.data.token&&tokenArry[data.data.token]){
-		result.data=tokenArry[data.data.token];
+	if(data.data.tk&&tokenArry[data.data.tk]){
+		console.log("有传入tk,且已有");
+		result.data=tokenArry[data.data.tk];
 		}else{
+		console.log("新tk");
 		var token=uuid();
+		console.log(token);
 	tokenArry[token]={
-		token:token,
+		tk:token,
 		user:{}
 		}
+		console.log(tokenArry[token])
 	var clearTime=setTimeout(function(){
+		console.log("tk失效");
 		delete tokenArry[token];
 		},1000*60*60*2);
 	result.data=tokenArry[token];
@@ -68,6 +73,7 @@ function getToken(socket,data,fn){
 	result.success=true;
 	result.code=1;
 	result.time=new Date().getTime();
+	console.log(result)
 	returnFn();	
 	};
 /*******************************************************************/
@@ -1017,7 +1023,6 @@ function getBind(socket,data,fn){
 		
 };
 
-exports.checkUserName=checkUserName;
 exports.getSafeQusetion=getSafeQusetion;
 exports.setSafeQusetion=setSafeQusetion;
 exports.checkSafeQusetion=checkSafeQusetion;
@@ -1034,3 +1039,4 @@ exports.remove=remove;
 exports.bind=bind;
 exports.getBindCode=getBindCode;
 exports.getBind=getBind;
+exports.getToken=getToken;

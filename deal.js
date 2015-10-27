@@ -260,6 +260,5 @@ function list(socket,data,fn){
 exports.get=get;
 exports.add=add;
 exports.edit=edit;
-exports.remove=remove;
 exports.list=list;
 
