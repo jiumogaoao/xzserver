@@ -75,6 +75,7 @@ function add(socket,data,fn){
 	 	}
 		}
 	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
+		data.data.id=uuid();
 		var newProduct=new data_mg.product(data.data);
 	newProduct.save(function(err){
 		if(err){console.log(err)

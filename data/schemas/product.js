@@ -4,11 +4,11 @@ var MemberSchema = new mongoose.Schema({
 		"title":String,/*标题*/
 		"subhead":String,/*副标题*/
 		"image":Array,/*图片*/
+		"copy":Number,/*份数*/
 		"price":Number,/*金额*/
 		"payedCount":Number,/*已众筹笔数*/
 		"payedMoney":Number,/*已众筹金额*/
 		"payedMember":Number,/*已众筹人数*/
-		"copy":Number,/*份数*/
 		"maxTime":Number,/*持有期限*/
 		"tax":Number,/*税费预算*/
 		"stratTime":Number,/*开始时间*/
@@ -25,6 +25,7 @@ var MemberSchema = new mongoose.Schema({
 		"passNumber":Number,/*通过份数*/
 		"place":String,/*地点*/
 		"buildtype":String,/*建筑类型*/
-		"buildState":String/*建筑状态*/
+		"buildState":String,/*建筑状态*/
+		"detail":String/*详情*/
 	})
 module.exports = MemberSchema;

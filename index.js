@@ -14,7 +14,8 @@ var app = require('./server')
       promotion : require('./promotion'),
 	  config : require('./config'),
 	  obj : require('./obj'),
-	  type : require('./type')
+	  type : require('./type'),
+	  com : require('./com')
    }
 /**********************************************************************************/
    var dbURL="mongodb://127.0.0.1:27017/xingzhong"
@@ -36,6 +37,7 @@ var app = require('./server')
 	  data_mg.account = require('./data/models/account');//帐户表
 	  data_mg.obj = require('./data/models/obj');//项目表
 	  data_mg.type = require('./data/models/type');//类型表
+	  data_mg.com = require('./data/models/com');//评论表
 
 
 
@@ -60,6 +62,9 @@ var showDB=function(){
 		data_mg.type.find({},function(err,data){console.log("type")
 			console.log(data)
 			})
+		data_mg.com.find({},function(err,data){console.log("com")
+			console.log(data)
+			})
 		data_mg.updateTime.find({},function(err,data){console.log("updateTime")
 			console.log(data)
 			})
@@ -69,7 +74,7 @@ var initDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==9){
+			if(totalCount==10){
 				showDB();
 				}
 			}
@@ -105,7 +110,7 @@ var initDB=function(){
 			totalCheck();
 			});
 		/****************************************************************************/
-		var addproductT=new data_mg.updateTime({"parentKey":"product","childKey":new Date().getTime()})
+		var addproductT=new data_mg.updateTime({"parentKey":"product","childKey":0})
 		addproductT.save(function(){
 			console.log("productTime init");
 			totalCheck();
@@ -120,14 +125,18 @@ var initDB=function(){
 			console.log("typeTime init");
 			totalCheck();
 			});
-		
+		var addComT=new data_mg.updateTime({"parentKey":"com","childKey":0})
+		addComT.save(function(){
+			console.log("comTime init");
+			totalCheck();
+			});
 }
 /***********************************************************************************/
 var emptyDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==4){
+			if(totalCount==5){
 				initDB();
 				}
 			}
@@ -141,6 +150,10 @@ var emptyDB=function(){
 			});
 		data_mg.type.remove({},function(){
 			console.log("type empty");
+			totalCheck();
+			});
+		data_mg.com.remove({},function(){
+			console.log("com empty");
 			totalCheck();
 			});
 		data_mg.updateTime.remove({},function(){
