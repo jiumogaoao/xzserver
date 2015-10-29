@@ -1,6 +1,9 @@
 function get(socket,data,fn){
 	console.log("promotion/get");
-	data.data=10086/*不用传*/
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data);
 	var result={
 		success:false,
 		code:0,

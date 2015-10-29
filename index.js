@@ -31,10 +31,8 @@ var app = require('./server')
       data_mg.promotion = require('./data/models/promotion');//宣传表
       data_mg.updateTime = require('./data/models/updateTime');//更新表
       data_mg.deal = require('./data/models/deal');//交易表
-      data_mg.bind = require('./data/models/bind');//绑定表
 	  data_mg.bindCode = require('./data/models/bindCode');//验证码表
 	  data_mg.config = require('./data/models/config');//配置表
-	  data_mg.saveQuestion = require('./data/models/saveQuestion');//安全问题表
 	  data_mg.invite = require('./data/models/invite');//邀请表
 	  data_mg.account = require('./data/models/account');//帐户表
 	  data_mg.obj = require('./data/models/obj');//项目表
@@ -42,7 +40,7 @@ var app = require('./server')
 	  data_mg.com = require('./data/models/com');//评论表
 	  data_mg.realName = require('./data/models/realName');//实名制表
 	  data_mg.cardBind = require('./data/models/cardBind');//银行卡表
-
+	  data_mg.redPacket = require('./data/models/redPacket');//红包表
 
 
 
@@ -84,11 +82,122 @@ var initDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==13){
+			if(totalCount==28){
 				showDB();
 				}
 			}
-		
+		var addPromo0=new data_mg.promotion({"id":"00",
+		"name":"首页banner（一）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo0.save(function(){
+			console.log("Promo0 init");
+			totalCheck();
+			});
+		var addPromo1=new data_mg.promotion({"id":"01",
+		"name":"首页banner（二）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo1.save(function(){
+			console.log("Promo1 init");
+			totalCheck();
+			});
+		var addPromo2=new data_mg.promotion({"id":"02",
+		"name":"首页banner（三）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo2.save(function(){
+			console.log("Promo2 init");
+			totalCheck();
+			});
+		var addPromo3=new data_mg.promotion({"id":"03",
+		"name":"首页banner（四）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo3.save(function(){
+			console.log("Promo3 init");
+			totalCheck();
+			});
+		var addPromo4=new data_mg.promotion({"id":"04",
+		"name":"表格一（一）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo4.save(function(){
+			console.log("Promo4 init");
+			totalCheck();
+			});
+		var addPromo5=new data_mg.promotion({"id":"05",
+		"name":"表格一（二）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo5.save(function(){
+			console.log("Promo5 init");
+			totalCheck();
+			});
+		var addPromo6=new data_mg.promotion({"id":"06",
+		"name":"表格一（三）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo6.save(function(){
+			console.log("Promo6 init");
+			totalCheck();
+			});
+		var addPromo7=new data_mg.promotion({"id":"07",
+		"name":"表格一（四）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo7.save(function(){
+			console.log("Promo7 init");
+			totalCheck();
+			});
+		var addPromo8=new data_mg.promotion({"id":"08",
+		"name":"表格一（五）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo8.save(function(){
+			console.log("Promo8 init");
+			totalCheck();
+			});
+		var addPromo9=new data_mg.promotion({"id":"09",
+		"name":"表格二（一）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo9.save(function(){
+			console.log("Promo9 init");
+			totalCheck();
+			});
+		var addPromo10=new data_mg.promotion({"id":"10",
+		"name":"表格二（二）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo10.save(function(){
+			console.log("Promo10 init");
+			totalCheck();
+			});
+		var addPromo11=new data_mg.promotion({"id":"11",
+		"name":"表格二（三）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo11.save(function(){
+			console.log("Promo11 init");
+			totalCheck();
+			});
+		var addPromo12=new data_mg.promotion({"id":"12",
+		"name":"表格二（四）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo12.save(function(){
+			console.log("Promo12 init");
+			totalCheck();
+			});
+		var addPromo13=new data_mg.promotion({"id":"13",
+		"name":"表格二（五）",
+		"image":"img/pic.jpg",
+		"link":"http://www.baidu.com"})
+		addPromo13.save(function(){
+			console.log("Promo13 init");
+			totalCheck();
+			});
 		var addObj0=new data_mg.obj({"id":uuid(),"name":"产权众筹"})
 		addObj0.save(function(){
 			console.log("Obj0 init");
@@ -155,13 +264,18 @@ var initDB=function(){
 			console.log("cardBindTime init");
 			totalCheck();
 			});
+		var addPromoT=new data_mg.updateTime({"parentKey":"promotion","childKey":new Date().getTime()})
+		addPromoT.save(function(){
+			console.log("promoTime init");
+			totalCheck();
+			});
 }
 /***********************************************************************************/
 var emptyDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==8){
+			if(totalCount==13){
 				initDB();
 				}
 			}
@@ -191,6 +305,26 @@ var emptyDB=function(){
 			});
 		data_mg.cardBind.remove({},function(){
 			console.log("cardBind empty");
+			totalCheck();
+			});
+		data_mg.account.remove({},function(){
+			console.log("account empty");
+			totalCheck();
+			});
+		data_mg.client_password.remove({},function(){
+			console.log("client_password empty");
+			totalCheck();
+			});
+		data_mg.invite.remove({},function(){
+			console.log("invite empty");
+			totalCheck();
+			});
+		data_mg.redPacket.remove({},function(){
+			console.log("redPacket empty");
+			totalCheck();
+			});
+		data_mg.promotion.remove({},function(){
+			console.log("promotion empty");
 			totalCheck();
 			});
 		data_mg.updateTime.remove({},function(){

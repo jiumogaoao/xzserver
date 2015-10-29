@@ -201,7 +201,7 @@ function login(socket,data,fn){
 		data.data=JSON.parse(data.data)
 		}
 	console.log("client/login");
-	//data.data = {"token":"xxxx",:"userName":"aa",/*登录名/手机/邮箱*/
+	//data.data = {"tk":"xxxx",:"userName":"aa",/*登录名/手机/邮箱*/
 	//			"passWord":"djisk"}/*密码*/
 	
 	console.log(data.data)
@@ -247,7 +247,10 @@ function login(socket,data,fn){
 								console.log("succeed")
 								result.success=true;
 								result.code=1;
-								tokenArry[data.data.token].user=doc[0];
+								if(!tokenArry[data.data.tk]){
+									tokenArry[data.data.tk]={tk:data.data.tk,user:{}}
+									}
+								tokenArry[data.data.tk].user=doc[0];
 					result.data=doc[0];
 								}
 							returnFunction();	
@@ -275,14 +278,15 @@ function register(socket,data,fn){
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
+		var newUserId=uuid();
 	var newData={
-		"id":uuid(),/*id*/
+		"id":newUserId,/*id*/
 		"type":1,/*类型,1普通用户2管理用户*/
 		"userName":"",/*用户名*/
 		"image":"",/*头像*/
 		"phone":data.data.phone,/*手机*/
 		"email":"",/*邮箱*/
-		"introducer":"",/*介绍人*/
+		"introducer":data.data.introducer||"",/*介绍人*/
 		"lastTime":0,/*上次登录时间*/
 		"lastIp":"",/*上次登录IP*/
 		"time":0,/*当前登录时间*/
@@ -322,7 +326,7 @@ function register(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 		}
-	var newClient=new data_mg.client(data.data)
+	var newClient=new data_mg.client(newData)
 	newClient.save(function(err,Clientsc){
 		console.log(Clientsc)
 		if(err){
@@ -332,7 +336,7 @@ function register(socket,data,fn){
 			returnFn();
 			}else{
 				var newPassword=new data_mg.client_password({
-					"parentKey":data.data.id,
+					"parentKey":newUserId,
 					"childKey":data.data.password,
 					})
 				newPassword.save(function(errA,Passsc){
@@ -352,7 +356,7 @@ function register(socket,data,fn){
 								}else{
 									
 														var newAccount=new data_mg.account({
-														"parentKey":data.data.id,//图片id
+														"parentKey":newUserId,//图片id
 														"childKey":"0",//路径
 														});	
 														newAccount.save(function(errF){
@@ -366,8 +370,8 @@ function register(socket,data,fn){
 																if(data.data.invite){
 																	var newInvite=new data_mg.invite({
 																		"id":uuid(),/*id*/
-																		"inviter":data.data.invite,/*邀请人id*/
-																		"user":data.data.id,/*被邀请人id*/
+																		"inviter":data.data.introducer,/*邀请人id*/
+																		"user":newUserId,/*被邀请人id*/
 																		"money":10,/*奖金*/
 																		"type":0/*类型*/
 																		});
@@ -375,25 +379,23 @@ function register(socket,data,fn){
 																			if(errE){
 																				console.log(errE);
 																				}else{
-																					data_mg.account.findOne({"parentKey":data.data.invite},function(errG,docG){
-																						if(errG){console.log(errG)}
-																						if(docG){
-																							data_mg.account.update({"parentKey":data.data.invite},{$set:{"childKey":(Number(docG.childKey)+10)+""}},function(errH){
-																								console.log(errH)
-																								})
-																							}
-																						});
+																					var newRedPacket=new data_mg.redPacket({"id":uuid(),
+		"userId":data.data.introducer,
+		"money":10,
+		"type":0,
+		"strat":new Date().getTime(),
+		"end":0});
+		newRedPacket.save(function(errG){
+			if(errG){
+																				console.log(errG);
+																				}
+			})
 																					}
 																			});
 																	}	
 																}
 															returnFn();	
 															});
-															
-														
-
-
-									
 								}
 								
 							})
