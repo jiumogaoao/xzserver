@@ -15,7 +15,9 @@ var app = require('./server')
 	  config : require('./config'),
 	  obj : require('./obj'),
 	  type : require('./type'),
-	  com : require('./com')
+	  com : require('./com'),
+	  realName : require('./realName'),
+	  cardBind : require('./cardBind')
    }
 /**********************************************************************************/
    var dbURL="mongodb://127.0.0.1:27017/xingzhong"
@@ -38,6 +40,8 @@ var app = require('./server')
 	  data_mg.obj = require('./data/models/obj');//项目表
 	  data_mg.type = require('./data/models/type');//类型表
 	  data_mg.com = require('./data/models/com');//评论表
+	  data_mg.realName = require('./data/models/realName');//实名制表
+	  data_mg.cardBind = require('./data/models/cardBind');//银行卡表
 
 
 
@@ -65,6 +69,12 @@ var showDB=function(){
 		data_mg.com.find({},function(err,data){console.log("com")
 			console.log(data)
 			})
+		data_mg.realName.find({},function(err,data){console.log("realName")
+			console.log(data)
+			})
+		data_mg.cardBind.find({},function(err,data){console.log("cardBind")
+			console.log(data)
+			})
 		data_mg.updateTime.find({},function(err,data){console.log("updateTime")
 			console.log(data)
 			})
@@ -74,7 +84,7 @@ var initDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==10){
+			if(totalCount==13){
 				showDB();
 				}
 			}
@@ -130,13 +140,28 @@ var initDB=function(){
 			console.log("comTime init");
 			totalCheck();
 			});
+		var addClientT=new data_mg.updateTime({"parentKey":"client","childKey":0})
+		addClientT.save(function(){
+			console.log("clientTime init");
+			totalCheck();
+			});
+		var addRealNameT=new data_mg.updateTime({"parentKey":"realName","childKey":0})
+		addRealNameT.save(function(){
+			console.log("realNameTime init");
+			totalCheck();
+			});
+		var addCardBindT=new data_mg.updateTime({"parentKey":"cardBind","childKey":0})
+		addCardBindT.save(function(){
+			console.log("cardBindTime init");
+			totalCheck();
+			});
 }
 /***********************************************************************************/
 var emptyDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==5){
+			if(totalCount==8){
 				initDB();
 				}
 			}
@@ -154,6 +179,18 @@ var emptyDB=function(){
 			});
 		data_mg.com.remove({},function(){
 			console.log("com empty");
+			totalCheck();
+			});
+		data_mg.client.remove({},function(){
+			console.log("client empty");
+			totalCheck();
+			});
+		data_mg.realName.remove({},function(){
+			console.log("realName empty");
+			totalCheck();
+			});
+		data_mg.cardBind.remove({},function(){
+			console.log("cardBind empty");
 			totalCheck();
 			});
 		data_mg.updateTime.remove({},function(){

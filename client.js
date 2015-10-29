@@ -275,7 +275,20 @@ function register(socket,data,fn){
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
-	
+	var newData={
+		"id":uuid(),/*id*/
+		"type":1,/*类型,1普通用户2管理用户*/
+		"userName":"",/*用户名*/
+		"image":"",/*头像*/
+		"phone":data.data.phone,/*手机*/
+		"email":"",/*邮箱*/
+		"introducer":"",/*介绍人*/
+		"lastTime":0,/*上次登录时间*/
+		"lastIp":"",/*上次登录IP*/
+		"time":0,/*当前登录时间*/
+		"ip":"",/*当前登录ip*/
+		"password":data.data.password/*密码*/
+		}
 	//data.data={
 	//	"id":uuid(),/*id*/
 	//	"type":1,/*类型,1普通用户2管理用户*/
@@ -337,22 +350,7 @@ function register(socket,data,fn){
 									result.message="更新时间失败";
 									returnFn();
 								}else{
-									var bindData=new data_mg.bind({"id":data.data.id,"phone":true,"email":false})
-									bindData.save(function(errC){
-										if(errC){
-											console.log(errC)
-											result.success=false;
-											result.message="添加绑定信息失败";
-											returnFn();
-											}else{
-												var saveQ=new data_mg.saveQuestion({"id":data.data.id,"question1":"0","question2":"0","answer1":"","answer2":""})
-												saveQ.save(function(errD){
-													if(errD){
-														console.log(errD)
-														result.success=false;
-														result.message="添加安全问题失败";
-														returnFn();
-														}else{
+									
 														var newAccount=new data_mg.account({
 														"parentKey":data.data.id,//图片id
 														"childKey":"0",//路径
@@ -392,12 +390,9 @@ function register(socket,data,fn){
 															returnFn();	
 															});
 															
-														}
-													})
-												
-												}
-												
-										})
+														
+
+
 									
 								}
 								
