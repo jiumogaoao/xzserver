@@ -26,6 +26,7 @@ var MemberSchema = new mongoose.Schema({
 		"place":String,/*地点*/
 		"buildtype":String,/*建筑类型*/
 		"buildState":String,/*建筑状态*/
-		"detail":String/*详情*/
+		"detail":Array,/*详情*/
+		"canChange":String/*是否可转让*/
 	})
 module.exports = MemberSchema;
