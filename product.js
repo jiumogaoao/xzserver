@@ -180,7 +180,7 @@ function remove(socket,data,fn){
 				}else{
 					if(doc.payedMoney!=0){
 						result.success=false;
-						result.message="改产品金额不为0,无法删除";
+						result.message="该产品金额不为0,无法删除";
 						returnFn()
 						}else{
 							data_mg.product.remove({"id":data.data.id},function(err){
