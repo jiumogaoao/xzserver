@@ -82,10 +82,32 @@ var initDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==28){
+			if(totalCount==29){
 				showDB();
 				}
 			}
+		var addAdmin=new data_mg.client({"id":"001",/*id*/
+		"type":2,/*类型,1普通用户2管理用户*/
+		"userName":"admin",/*用户名*/
+		"image":"",/*头像*/
+		"dsc":"",/*简介*/
+		"phone":0,/*手机*/
+		"email":"",/*邮箱*/
+		"introducer":"",/*介绍人*/
+		"lastTime":0,/*上次登录时间*/
+		"lastIp":"",/*上次登录IP*/
+		"time":0,/*当前登录时间*/
+		"ip":""/*当前登录ip*/});
+		addAdmin.save(function(){
+			console.log("addAdmin init");
+			totalCheck();
+			});
+		var adminPass=new data_mg.client_password({"parentKey":"001",
+		"childKey":"123456"});
+		adminPass.save(function(){
+			console.log("adminPass init");
+			totalCheck();
+			});
 		var addPromo0=new data_mg.promotion({"id":"00",
 		"name":"首页banner（一）",
 		"image":"img/pic.jpg",
@@ -332,8 +354,8 @@ var emptyDB=function(){
 			totalCheck();
 			});
 }
-	emptyDB();
-	//showDB();
+	//emptyDB();
+	showDB();
 /***********************************************************************************/	
  	 var io = require('socket.io').listen(app.target)
 app.target.listen(8888);

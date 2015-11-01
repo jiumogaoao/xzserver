@@ -120,7 +120,11 @@ function edit(socket,data,fn){
 		data.data=JSON.parse(data.data)
 		}
 		console.log(data.data);
-	var result={code:0};
+	var result={code:0,
+		time:0,
+		data:[],
+		success:false,
+		message:""};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("obj_edit",result);
@@ -130,33 +134,65 @@ function edit(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 	}
-	console.log("updateAdmin")
-	data_mg.admin.update({"id":data.data.id},{$set:data.data},{},function(err){
-		if(err){
-			console.log(err)
-			result.code=0
-			returnFn()
-		}else{
-			console.log("updateTime")
-			data_mg.updateTime.update({"parentKey":"admin"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+	var lock=1;
+	var callbackCount=0;
+	var errSend=1;
+	var callbackFn=function(){
+		if(lock){
+			callbackCount++;
+			if(callbackCount==data.data.list.length){
+				console.log("updateTime")
+			data_mg.updateTime.update({"parentKey":"obj"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
 				if(errA){
+					result.success=false;
+					result.message="更新时间出错";
 					console.log(errA)
 					result.code=0
 				}else{
+					result.success=true;
 					result.code=1
 				}
 				returnFn()
 			})
+				}
+			}else{
+				if(errSend){
+					errSend=0;
+					returnFn()
+					}
+				}
 		}
+	console.log("updateObj")
+	for (var i=0;i<data.data.list.length;i++){
+		if(lock){
+			data_mg.obj.update({"id":data.data.list[i].id},{$set:data.data.list[i]},{},function(err){
+		if(err){
+			console.log(err)
+			result.code=0
+			result.success=false;
+			result.message="修改错误";
+			lock=0;
+		}
+		callbackFn();
 	})
+			}
+		}
+	
 	
 };
 
 function remove(socket,data,fn){
 	console.log("obj/remove");
 	//data.data = "ddgdgd"/*管理员id*/
-	console.log(data.data);
-	var result={code:0};
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:[],
+		success:false,
+		message:""};
 	var returnFn=function(){
 		if(socket){
 	 	socket.emit("obj_remove",result);
@@ -166,44 +202,53 @@ function remove(socket,data,fn){
 	 		fn(returnString);
 	 	}
 	}
-	console.log("删除admin")
-	data_mg.admin.remove({"id":data.data},function(err){
-		if(err){
-			console.log(err)
-			result.code=0
-			returnFn()
-		}else{
-			console.log("更新admin")
-			data_mg.updateTime.update({"parentKey":"admin"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+	console.log("删除obj")
+	var lock=1;
+	var callbackcount=0;
+	var errSend=1;
+	var callbackFn=function(){
+		if(lock){
+			callbackcount++;
+			if(callbackcount==data.data.list.length){
+				
+			console.log("更新obj")
+			data_mg.updateTime.update({"parentKey":"obj"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
 				if(errA){
+					result.success=false;
+					result.message="更新出错";
 					console.log(errA)
 					result.code=0;
-					returnFn()
 				}else{
-					console.log("删除client")
-					data_mg.client.remove({"id":data.data},function(errB){
-						if(errB){
-							console.log(errB)
-							result.code=0
-							returnFn()
-							}else{
-								console.log("跟新client")
-								data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errC){
-								if(errC){
-							console.log(errC)
-							result.code=0}else{
-								result.code=1
-								}
-								returnFn()	
-									})
-								}
-						})
-
+					result.success=true;
+					result.code=1;	
 				}
-
+				returnFn()
 			})
+		
+				}
+			}else{
+				if(errSend){
+					errSend=0;
+					returnFn();
+					}
+				}
 		}
+		for (var i=0;i<data.data.list.length;i++){
+			if(lock){
+				data_mg.obj.remove({"id":data.data.list[i]},function(err){
+		if(err){
+			console.log(err)
+			lock=0;
+			result.success=false;
+			result.message="删除出错";
+			result.code=0
+		}
+		callbackFn();
 	})
+				}
+			
+			}
+	
 		
 };
 

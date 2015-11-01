@@ -6,6 +6,7 @@ var MemberSchema = new mongoose.Schema({
 		"image":String,/*头像*/
 		"phone":String,/*手机*/
 		"email":String,/*邮箱*/
+		"dsc":String,/*简介*/
 		"introducer":String,/*介绍人*/
 		"lastTime":Number,/*上次登录时间*/
 		"lastIp":String,/*上次登录IP*/

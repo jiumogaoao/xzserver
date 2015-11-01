@@ -2,10 +2,9 @@ var mongoose = require('mongoose');
 var MemberSchema = new mongoose.Schema({
 		"id":String,/*id*/
 		"title":String,/*标题*/
-		"subhead":String,/*副标题*/
 		"image":Array,/*图片*/
 		"copy":Number,/*份数*/
-		"price":Number,/*金额*/
+		"price":Number,/*单价*/
 		"payedCount":Number,/*已众筹笔数*/
 		"payedMoney":Number,/*已众筹金额*/
 		"payedMember":Number,/*已众筹人数*/

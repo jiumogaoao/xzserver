@@ -52,23 +52,24 @@ function getToken(socket,data,fn){
 	 		fn(returnString);
 	 	}
 	}
+	console.log(tokenArry);
 	if(data.data.tk&&tokenArry[data.data.tk]){
 		console.log("有传入tk,且已有");
 		result.data=tokenArry[data.data.tk];
 		}else{
 		console.log("新tk");
-		var token=uuid();
-		console.log(token);
-	tokenArry[token]={
-		tk:token,
+		var tokenA=data.data.tk||uuid();
+		console.log(tokenA);
+	tokenArry[tokenA]={
+		tk:tokenA,
 		user:{}
 		}
-		console.log(tokenArry[token])
+		console.log(tokenArry)
 	var clearTime=setTimeout(function(){
 		console.log("tk失效");
-		delete tokenArry[token];
+		delete tokenArry[tokenA];
 		},1000*60*60*2);
-	result.data=tokenArry[token];
+	result.data=tokenArry[tokenA];
 			}
 	result.success=true;
 	result.code=1;
@@ -251,6 +252,7 @@ function login(socket,data,fn){
 									tokenArry[data.data.tk]={tk:data.data.tk,user:{}}
 									}
 								tokenArry[data.data.tk].user=doc[0];
+								console.log(tokenArry)
 					result.data=doc[0];
 								}
 							returnFunction();	
@@ -278,11 +280,13 @@ function register(socket,data,fn){
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
+		console.log(data.data)
 		var newUserId=uuid();
 	var newData={
 		"id":newUserId,/*id*/
 		"type":1,/*类型,1普通用户2管理用户*/
 		"userName":"",/*用户名*/
+		"dsc":"",/*简介*/
 		"image":"",/*头像*/
 		"phone":data.data.phone,/*手机*/
 		"email":"",/*邮箱*/
@@ -364,9 +368,74 @@ function register(socket,data,fn){
 																console.log(errF);
 																result.success=false;
 																result.message="创建帐户失败";
+																returnFn();
 																}else{
-																result.success=true;
-																result.code=0;
+																var newRealName=new data_mg.realName({
+																	"id":newUserId,/*id*/
+																	"name":"",/*真实姓名*/
+																	"sex":"0",/*性别*/
+																	"cardType":"0",/*证件类型*/
+																	"place":"",/*地区*/
+																	"birthday":new Date().getTime(),/*生日*/
+																	"cardNumber":"",/*证件号*/
+																	"startTime":new Date().getTime(),/*开始时间*/
+																	"endTime":new Date().getTime(),/*结束时间*/
+																	"image":"",/*证件照*/
+																	"state":0/*审核状态*/
+																	})	
+																newRealName.save(function(errz){
+																	if(errz){
+																		console.log(errz)
+																		result.message="创建实名制信息出错"
+																		result.success=false;
+																		returnFn();	
+																		}else{
+		data_mg.updateTime.update({"parentKey":"realName"},{$set:{"childKey":new Date().getTime()}},{},function(errH){
+			if(errH){
+				console.log(errH)
+				result.message="更新实名制时间出错"
+				result.success=false
+				returnFn();	
+				}else{
+					var newCardBind=new data_mg.cardBind({
+						"id":newUserId,/*id*/
+						"name":"",/*开户名*/
+						"number":"",/*银行卡*/
+						"place":"",/*开户城市*/
+						"bank":"",/*开户支行*/
+						"state":0/*审核状态*/
+						})
+						newCardBind.save(function(errM){
+							if(errM){
+								console.log(errM);
+								result.message="创建银行卡绑定信息失败";
+								result.success=false;
+								returnFn();	
+								}else{
+									data_mg.updateTime.update({"parentKey":"cardBind"},{$set:{"childKey":new Date().getTime()}},{},function(errN){
+										if(errN){
+											console.log(errN);
+											result.message="更新绑定事件失败"
+											result.success=false;
+											returnFn();	
+											}else{
+												result.success=true;
+																result.code=1;
+																tokenArry[data.data.tk]={tk:data.data.tk,user:{
+		"id":newUserId,/*id*/
+		"type":1,/*类型,1普通用户2管理用户*/
+		"userName":"",/*用户名*/
+		"image":"",/*头像*/
+		"dsc":"",/*简介*/
+		"phone":data.data.phone,/*手机*/
+		"email":"",/*邮箱*/
+		"introducer":data.data.introducer||"",/*介绍人*/
+		"lastTime":0,/*上次登录时间*/
+		"lastIp":"",/*上次登录IP*/
+		"time":0,/*当前登录时间*/
+		"ip":""/*当前登录ip*/
+		}}
+																
 																if(data.data.invite){
 																	var newInvite=new data_mg.invite({
 																		"id":uuid(),/*id*/
@@ -393,8 +462,21 @@ function register(socket,data,fn){
 																					}
 																			});
 																	}	
+																	returnFn();	
+												}
+										})
+									}
+							})
+					}
+			})
+																			}
+																	});	
+																	
+																/************************************************/
+																
+																	/*******************************************/
 																}
-															returnFn();	
+														
 															});
 								}
 								
@@ -428,8 +510,8 @@ function resetKey(socket,data,fn){
 	 		fn(returnString);
 	 	}
 			}
-		if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
-			data_mg.client_password.update({"parentKey":tokenArry[data.data.token].user.id,"childKey":data.data.oldKey},{$set:{"childKey":data.data.newKey}},{},function(err){
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
+			data_mg.client_password.update({"parentKey":tokenArry[data.data.tk].user.id,"childKey":data.data.oldKey},{$set:{"childKey":data.data.newKey}},{},function(err){
 		if(err){
 			console.log(err)
 			result.success=false;
@@ -534,8 +616,8 @@ function edit(socket,data,fn){
 	 		fn(returnString);
 	 	}
 	}
-	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
-		data_mg.client.update({"id":data.data.id},{$set:data.data},{},function(err){
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
+		data_mg.client.update({"id":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
 		console.log("更新回调")
 		if(err){
 			console.log(err)
@@ -554,6 +636,11 @@ function edit(socket,data,fn){
 					console.log("修改成功")
 					result.success=true;
 					result.code=1
+					tokenArry[data.data.tk].user.userName=data.data.userName,
+					tokenArry[data.data.tk].user.image=data.data.image,
+					tokenArry[data.data.tk].user.dsc=data.data.dsc,
+					tokenArry[data.data.tk].user.phone=data.data.phone,
+					tokenArry[data.data.tk].user.email=data.data.email
 				}
 				returnFn();
 			})
@@ -1019,7 +1106,236 @@ function getBind(socket,data,fn){
 	
 		
 };
-
+/************************************************************************************************/
+function realGet(socket,data,fn){
+	console.log("client/realGet");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={
+					code:0,
+		time:0,
+		data:[],
+		success:false,
+		message:""
+					};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_realGet",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}	
+	}
+	//returnFn();
+	//return;
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
+		data_mg.updateTime.find({"parentKey":"realName"},function(err,doc){
+		if(err){
+			result.success=false;
+			result.message="获取更新时间失败";
+			console.log(err);
+			returnFn();
+		}else{
+			console.log(doc)
+			if(doc&&doc.length&&doc[0].childKey>data.data.time){
+				result.code=1;
+				result.time=doc[0].childKey
+				data_mg.realName.find({id:tokenArry[data.data.tk].user.id},function(errA,docA){
+					if(errA){
+						result.success=false;
+						result.message="获取项目列表失败";
+						console.log(errA);
+					}else{
+						result.success=true;
+						result.data=docA;
+					}
+					returnFn();
+				});
+			}else{
+				result.success=true;
+				result.code=2;
+				returnFn();
+			}
+		}
+	})
+		}else{
+		result.success=false;
+		result.message="未登录"
+		returnFn()
+		}
+};
+/******************************************************************************************/
+function realEdit(socket,data,fn){
+	console.log("client/realEdit");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_realEdit",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+	}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
+		data_mg.realName.update({"id":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
+		console.log("更新回调")
+		if(err){
+			console.log(err)
+			result.success=false;
+			result.message="修改失败";
+			returnFn()
+		}else{
+			console.log("开始更新时间")
+			data_mg.updateTime.update({"parentKey":"realName"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+				console.log("更新回调")
+				if(errA){
+					console.log(errA)
+					result.success=false;
+			result.message="更新用户信息失败";
+				}else{
+					console.log("修改成功")
+					result.success=true;
+					result.code=1
+				}
+				returnFn();
+			})
+		}
+	})
+		}else{
+		result.success=false;
+		result.message="登录超时,请重新登录";
+		returnFn();
+		}	
+};
+/************************************************************************************************/
+function cardGet(socket,data,fn){
+	console.log("client/cardGet");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={
+					code:0,
+		time:0,
+		data:[],
+		success:false,
+		message:""
+					};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_cardGet",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}	
+	}
+	//returnFn();
+	//return;
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
+		data_mg.updateTime.find({"parentKey":"cardBind"},function(err,doc){
+		if(err){
+			result.success=false;
+			result.message="获取更新时间失败";
+			console.log(err);
+			returnFn();
+		}else{
+			console.log(doc)
+			if(doc&&doc.length&&doc[0].childKey>data.data.time){
+				result.code=1;
+				result.time=doc[0].childKey
+				data_mg.cardBind.find({id:tokenArry[data.data.tk].user.id},function(errA,docA){
+					if(errA){
+						result.success=false;
+						result.message="获取项目列表失败";
+						console.log(errA);
+					}else{
+						result.success=true;
+						result.data=docA;
+					}
+					returnFn();
+				});
+			}else{
+				result.success=true;
+				result.code=2;
+				returnFn();
+			}
+		}
+	})
+		}else{
+		result.success=false;
+		result.message="未登录"
+		returnFn()
+		}
+};
+/******************************************************************************************/
+function cardEdit(socket,data,fn){
+	console.log("client/cardEdit");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_cardEdit",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+	}
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user){
+		data_mg.cardBind.update({"id":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
+		console.log("更新回调")
+		if(err){
+			console.log(err)
+			result.success=false;
+			result.message="修改失败";
+			returnFn()
+		}else{
+			console.log("开始更新时间")
+			data_mg.updateTime.update({"parentKey":"cardBind"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+				console.log("更新回调")
+				if(errA){
+					console.log(errA)
+					result.success=false;
+			result.message="更新用户信息失败";
+				}else{
+					console.log("修改成功")
+					result.success=true;
+					result.code=1
+				}
+				returnFn();
+			})
+		}
+	})
+		}else{
+		result.success=false;
+		result.message="登录超时,请重新登录";
+		returnFn();
+		}	
+};
+exports.cardEdit=cardEdit;
+exports.cardGet=cardGet;
+exports.realEdit=realEdit;
+exports.realGet=realGet;
 exports.getSafeQusetion=getSafeQusetion;
 exports.setSafeQusetion=setSafeQusetion;
 exports.checkSafeQusetion=checkSafeQusetion;

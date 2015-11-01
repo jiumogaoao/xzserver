@@ -58,6 +58,9 @@ function add(socket,data,fn){
 		data.data=JSON.parse(data.data)
 		}
 		console.log(data.data)
+		data.data.payedMember=0;
+		data.data.payedMoney=0;
+		data.data.payedCount=0;
 	var result={
 		success:false,
 		code:0,
@@ -74,7 +77,7 @@ function add(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
+	/*if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){*/
 		data.data.id=uuid();
 		var newProduct=new data_mg.product(data.data);
 	newProduct.save(function(err){
@@ -96,11 +99,11 @@ function add(socket,data,fn){
 					})
 				}
 		})
-		}else{
+		/*}else{
 		result.success=false;
 				result.message="登陆信息超时,或不是管理员帐号";
 				returnFn();
-		}
+		}*/
 	
 		
 };
@@ -125,7 +128,8 @@ function edit(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
+	/*
+	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){*/
 			console.log("更新产品")
 	data_mg.product.update({"id":data.data.id},{$set:data.data},{},function(err){
 		if(err){console.log(err)
@@ -145,18 +149,21 @@ function edit(socket,data,fn){
 					})
 				}
 		})
-		}else{
+		/*}else{
 		result.success=false;
 				result.message="登陆信息超时,或不是管理员帐号";
 				returnFn();
-		}	
+		}	*/
 	
 		
 };
 /*********************************************************************************************/
 function remove(socket,data,fn){
 	console.log("product/remove");
-	
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+		console.log(data.data)
 	var result={code:0,
 		time:0,
 		data:{},
@@ -171,26 +178,16 @@ function remove(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 		}
-	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
-		data_mg.product.findOne({"id":data.data.id},function(errB,doc){
-			if(errB){
-				result.success=false;
-				result.message="没有该产品";
-				returnFn();
-				}else{
-					if(doc.payedMoney!=0){
-						result.success=false;
-						result.message="该产品金额不为0,无法删除";
-						returnFn()
-						}else{
-							data_mg.product.remove({"id":data.data.id},function(err){
-		if(err){
-			console.log(err)
-			result.success=false;
-			result.message="删除失败";
-			returnFn()
-			}else{
-				data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+	/*if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){*/
+	var lock=1;
+	var callbackCount=0;
+	var errSend=1;
+	function callback(){
+			if(lock){
+				callbackCount++;
+				if(callbackCount==data.data.list.length){
+					if(lock){
+						data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
 					if(errA){
 						console.log(errA)
 						result.success=false;
@@ -200,17 +197,56 @@ function remove(socket,data,fn){
 							}
 						returnFn()
 					})
-				}
-		})
+						}
+					}
+				}else{
+					if(errSend){
+						errSend=0;
+					returnFn();
+						}
+					}
+				
+		}
+		for (var i=0;i<data.data.list.length;i++){
+			if(lock){
+				data_mg.product.findOne({"id":data.data.list[i]},function(errB,doc){
+			if(errB){
+				result.success=false;
+				result.message="没有该产品";
+				lock=0;
+				callback();
+				}else{
+					if(doc.payedMoney!=0){
+						result.success=false;
+						result.message="该产品金额不为0,无法删除";
+						lock=0;
+						callback();
+						}else{
+							data_mg.product.remove({"id":data.data.list[i]},function(err){
+		if(err){
+			console.log(err)
+			result.success=false;
+			result.message="删除失败";
+			lock=0;
+			callback();
+			}else{
+				callback();}
+		});
 							}
 					}
 			});
+				}
+			
+			}
 		
-		}else{
+		
+				
+				
+		/*}else{
 		result.success=false;
 				result.message="登陆信息超时,或不是管理员帐号";
 				returnFn();
-		}
+		}*/
 	
 	
 };
