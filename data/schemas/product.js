@@ -26,6 +26,8 @@ var MemberSchema = new mongoose.Schema({
 		"buildtype":String,/*建筑类型*/
 		"buildState":String,/*建筑状态*/
 		"detail":Array,/*详情*/
-		"canChange":String/*是否可转让*/
+		"canChange":String,/*是否可转让*/
+		"com":Array,
+		"member":Array
 	})
 module.exports = MemberSchema;

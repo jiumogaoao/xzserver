@@ -274,8 +274,8 @@ function detail(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-	data_mg.product.findOne({id:data.data.id},function(err,doc){
-						if(errA){
+	data_mg.product.findOne({id:data.data.id},function(err,doc){console.log(doc)
+						if(err){
 							console.log(err)
 							result.success=false;
 							result.message="获取产品商品信息失败";
@@ -299,6 +299,7 @@ function detail(socket,data,fn){
 													doc.member=docB;
 													result.success=true;
 													result.data=doc;
+													result.code=1;
 												}
 												returnFn();
 											})
