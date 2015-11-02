@@ -97,6 +97,8 @@ var initDB=function(){
 		"lastTime":0,/*上次登录时间*/
 		"lastIp":"",/*上次登录IP*/
 		"time":0,/*当前登录时间*/
+		"balance":0,
+		"redpacket":0,
 		"ip":""/*当前登录ip*/});
 		addAdmin.save(function(){
 			console.log("addAdmin init");

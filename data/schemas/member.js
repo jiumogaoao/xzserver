@@ -11,6 +11,8 @@ var MemberSchema = new mongoose.Schema({
 		"lastTime":Number,/*上次登录时间*/
 		"lastIp":String,/*上次登录IP*/
 		"time":Number,/*当前登录时间*/
-		"ip":String/*当前登录ip*/
+		"ip":String,/*当前登录ip*/
+		"balance":Number,
+		"redpacket":Number
 	})
 module.exports = MemberSchema;

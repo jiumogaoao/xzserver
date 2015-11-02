@@ -295,6 +295,8 @@ function register(socket,data,fn){
 		"lastIp":"",/*上次登录IP*/
 		"time":0,/*当前登录时间*/
 		"ip":"",/*当前登录ip*/
+		"balance":0,
+		"redpacket":0,
 		"password":data.data.password/*密码*/
 		}
 	//data.data={
@@ -358,19 +360,7 @@ function register(socket,data,fn){
 									result.message="更新时间失败";
 									returnFn();
 								}else{
-									
-														var newAccount=new data_mg.account({
-														"parentKey":newUserId,//图片id
-														"childKey":"0",//路径
-														});	
-														newAccount.save(function(errF){
-															if(errF){
-																console.log(errF);
-																result.success=false;
-																result.message="创建帐户失败";
-																returnFn();
-																}else{
-																var newRealName=new data_mg.realName({
+									var newRealName=new data_mg.realName({
 																	"id":newUserId,/*id*/
 																	"name":"",/*真实姓名*/
 																	"sex":"0",/*性别*/
@@ -433,7 +423,9 @@ function register(socket,data,fn){
 		"lastTime":0,/*上次登录时间*/
 		"lastIp":"",/*上次登录IP*/
 		"time":0,/*当前登录时间*/
-		"ip":""/*当前登录ip*/
+		"ip":"",/*当前登录ip*/
+		"balance":0,
+		"redpacket":0
 		}}
 																
 																if(data.data.invite){
@@ -457,6 +449,17 @@ function register(socket,data,fn){
 		newRedPacket.save(function(errG){
 			if(errG){
 																				console.log(errG);
+																				}else{
+																					data_mg.client.findOne({id:data.data.introducer},function(errY,docY){
+																						if(errY){
+																							console.log(errY)
+																						}else{
+																							var newbalance=docY.balance+10;
+																							data_mg.client.update({id:data.data.introducer},{$set:{"balance":newbalance}},{},function(errX){
+																								console.log(errX)
+																							});
+																						}
+																					})
 																				}
 			})
 																					}
@@ -475,9 +478,6 @@ function register(socket,data,fn){
 																/************************************************/
 																
 																	/*******************************************/
-																}
-														
-															});
 								}
 								
 							})
