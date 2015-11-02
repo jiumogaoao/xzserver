@@ -256,7 +256,71 @@ function list(socket,data,fn){
 				}
 		
 };
-
+/*****************************************************/
+function money(socket,data,fn){
+	console.log("deal/money");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	//data.data = 10086/*不用传*/
+	var result={
+		code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""
+		};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("deal_money",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	data_mg.product.findOne({id:data.data.id},function(err,doc){
+						if(errA){
+							console.log(err)
+							result.success=false;
+							result.message="获取产品商品信息失败";
+							returnFn();
+							}else{
+								if(doc){
+									data_mg.com.find({productId:data.data.id},function(errA,docA){
+										if(errA){
+											console.log(errA)
+											result.success=false;
+											result.message="获取评论失败";
+											returnFn();
+										}else{
+											doc.com=docA;
+											data_mg.deal.find({productId:data.data.id},function(errB,docB){
+												if(errB){
+													console.log(errB)
+													result.success=false;
+													result.message="获取交易名单失败";
+												}else{
+													doc.member=docB;
+													result.success=true;
+													result.data=doc;
+												}
+												returnFn();
+											})
+										}
+									})
+								}else{
+									reuslt.success=false;
+									result.message="没有该产品"
+									returnFn();
+								}
+								}
+							
+						})
+		
+};
+exports.money=money;
 exports.get=get;
 exports.add=add;
 exports.edit=edit;
