@@ -57,60 +57,78 @@ function add(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		};
-	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
-		data_mg.account.findOne({"parentKey":tokenArry[data.data.token].user.id},function(errD,docD){
-			if(errD){
-				console.log(errD);
+		console.log(tokenArry[data.data.tk])
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+		console.log("已登陆")
+		data_mg.client.findOne({id:tokenArry[data.data.tk].user.id},function(err,member){
+			if(err){
+				console.log(err);
 				result.success=false;
-				result.message="获取帐户信息失败";
+				result.message="获取用户信息失败";
 				returnFn();
-				}else{
-					if(Number(docD.childKey)<(data.data.buyPrice*data.data.count)){
-						result.success=false;
-						result.message="帐户余额不足";
-						returnFn();
-						}else{
-							data_mg.account.update({"parentKey":tokenArry[data.data.token].user.id},{$set:{"childKey":(Number(docD.childKey)-(data.data.buyPrice*data.data.count))+""}},function(errE){
-								if(errE){
+			}else{
+				console.log("用户信息正确")
+				var restMoney=member.balance+member.redpacket;
+				var totalPay=data.data.buyPrice*data.data.count;
+				var moneySet={balance:0,redpacket:0}
+				if(restMoney>=totalPay){console.log("余额足够")
+					if(member.redpacket>=totalPay){
+						moneySet={balance:member.balance,redpacket:(member.redpacket-totalPay)}
+					}else{
+						moneySet={balance:member.balance+member.redpacket-totalPay,redpacket:0}
+					}
+					data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$set:moneySet},{},function(errA){
+						if(errA){
+							consol.log(errA);
+							result.success=false;
+							result.message="修改金额失败";
+							returnFn();
+						}else{console.log("修改余额成功")
+							data_mg.updateTime.update({parentKey:"client"},{$set:{childKey:new Date().getTime()}},{},function(errB){
+								if(errB){
+									console.log(errB);
 									result.success=false;
-									result.message="更新帐户余额错误";
+									result.message="更新用户信息失败";
 									returnFn();
-									}else{
+								}else{console.log("更新余额时间成功")
+									/********************************************/
 									var deal=new data_mg.deal(data.data);	
-									deal.save(function(err){
-		if(err){
-			console.log(err)
+									deal.save(function(errC){
+		if(errC){
+			console.log(errC)
 			result.success=false;
-			result.message=err;
+			result.message="添加交易纪录失败";
 			returnFn();
 			}else{
 				console.log("开始修改product")
-				data_mg.product.findOne({id:data.data.productId},function(errA,product){
-					if(errA){
-						console.log(errA);
+				data_mg.product.findOne({id:data.data.productId},function(errD,product){
+					if(errD){
+						console.log(errD);
 						result.success=false;
 						result.message="没有该产品";
 						returnFn();
-						}else{
+						}else{console.log("有产品")
 							var payedCount=product.payedCount+data.data.count;
-							var payed=product.payed+(data.data.buyPrice*data.data.count);
-							data_mg.product.update({id:data.data.productId},{$set:{payedCount:payedCount,payed:payed}},{},function(errB){
-								if(errB){
-									console.log(errB);
+							var payedMoney=product.payedMoney+(data.data.buyPrice*data.data.count);
+							var payedMember=product.payedMember+1;
+							data_mg.product.update({id:data.data.productId},{$set:{payedCount:payedCount,payedMoney:payedMoney,payedMember:payedMember}},{},function(errE){
+								if(errE){
+									console.log(errE);
 									result.success=false;
 									result.message="更新产品数量失败";
 									returnFn();
 									}else{
 										console.log("更新product时间")
 										var lastTime=new Date().getTime();
-										data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":lastTime}},{},function(errC){
-											if(errC){
-												console.log(errC);
+										data_mg.updateTime.update({"parentKey":"product"},{$set:{"childKey":lastTime}},{},function(errF){
+											if(errF){
+												console.log(errF);
 												result.success=false;
-												result.time=lastTime;
 												result.message="更新产品时间失败";
 												}else{
+													result.time=lastTime;
 													result.success=true;
+													result.code=1;
 													}
 													returnFn();
 											})
@@ -121,20 +139,24 @@ function add(socket,data,fn){
 				}
 			
 		});
-										}
-								})
-							}
-					}
-			});
-		
-	
+									/********************************************/
+								}
+							})
+						}
+					})
+				}else{
+					console.log("余额不足");
+					result.success=false;
+					result.message="余额不足";
+					returnFn();
+				}
+			}
+		})	
 		}else{
 				result.success=false;
 				result.message="登陆信息超时或不是管理员帐号";
 				returnFn();
-				}
-	
-		
+				}		
 };
 /*****************************************************************************************************/
 function edit(socket,data,fn){
