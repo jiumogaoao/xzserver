@@ -180,6 +180,7 @@ function sell(socket,data,fn){
 	 	}
 		}
 		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+			
 			data_mg.deal.update({"id":data.data.id,"userId":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
 			if(err){
 				console.log(err)
@@ -338,7 +339,7 @@ function change(socket,data,fn){
 };
 /*****************************************************************************************************/
 function list(socket,data,fn){
-	console.log("deal/getdealList");
+	console.log("deal/list");
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
@@ -350,7 +351,7 @@ function list(socket,data,fn){
 		message:""};
 	var returnFN=function(){
 		if(socket){
-	 	socket.emit("deal_getdealList",result);
+	 	socket.emit("deal_list",result);
 	 }
 	 	else if(fn){
 	 		var returnString = JSON.stringify(result);
