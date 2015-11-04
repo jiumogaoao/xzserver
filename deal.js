@@ -18,7 +18,7 @@ function get(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 		}	
-	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
 		data_mg.deal.find({},function(err,doc){
 			if(err){
 				console.log(err);
@@ -27,6 +27,7 @@ function get(socket,data,fn){
 				}else{
 					result.success=true;
 					result.data=doc;
+					result.code=1;
 					}
 				returnFn();
 			});
@@ -159,8 +160,8 @@ function add(socket,data,fn){
 				}		
 };
 /*****************************************************************************************************/
-function edit(socket,data,fn){
-	console.log("deal/edit");
+function sell(socket,data,fn){
+	console.log("deal/sell");
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
@@ -171,23 +172,22 @@ function edit(socket,data,fn){
 		message:""};
 	var returnFn=function(){
 		if(socket){
-	 	socket.emit("deal_edit",result);
+	 	socket.emit("deal_sell",result);
 	 }
 	 	else if(fn){
 	 		var returnString = JSON.stringify(result);
 	 		fn(returnString);
 	 	}
 		}
-		if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
-			data_mg.deal.update({"id":data.data.id},{$set:data.data},{},function(err){
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+			data_mg.deal.update({"id":data.data.id,"userId":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(err){
 			if(err){
 				console.log(err)
 				result.success=false;
 				result.message="修改失败";
 				returnFn();
 				}else{
-					if(data.data.endTime){
-						console.log("开始修改product")
+
 				data_mg.product.findOne({id:data.data.productId},function(errA,product){
 					if(errA){
 						console.log(errA)
@@ -196,8 +196,8 @@ function edit(socket,data,fn){
 						returnFn();
 						}else{
 							var payedCount=product.payedCount-data.data.count;
-							var payed=product.payed-(data.data.buyPrice*data.data.count);
-							data_mg.product.update({id:data.data.productId},{$set:{payedCount:payedCount,payed:payed}},{},function(errB){
+							var payed=product.payedMoney-(data.data.buyPrice*data.data.count);
+							data_mg.product.update({id:data.data.productId},{$set:{payedCount:payedCount,payedMoney:payed}},{},function(errB){
 								
 								if(errB){
 									console.log(errB);
@@ -211,33 +211,132 @@ function edit(socket,data,fn){
 												console.log(errC);
 												result.success=false;
 												result.message="更新产品出错";
+												returnFn();
 												}else{
-													result.success=true;
+													data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$inc:{balance:product.price*data.data.count}},{},function(errD){
+														if(errD){
+															console.log(errD);
+															result.success=false;
+															result.message="余额修改错误";
+														}else{
+															result.success=true;
 													result.code=1;
+														}
+														returnFn();
+													})
+													/*****************************/
+													
 													}
-													returnFn();
+													
 											})
 										}
 								})
 							}
 					})
-						}else{
-							result.success=true;
-							returnFn();
-							}
+
 					
 					}
 					
 			})
 			}else{
 				result.success=false;
-				result.message="登陆信息超时或不是管理员帐号";
+				result.message="登陆信息超时";
 				returnFn();
 				}
 		
 		
 };
-
+/*****************************************************************************************************/
+function change(socket,data,fn){
+	console.log("deal/change");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("deal_change",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+			data_mg.client.findOne({phone:data.data.phone},function(err,user){
+				if(err){
+					console.log(err);
+					result.success=false;
+					result.message="找不到被转让人";
+					returnFn();
+				}else{
+					data_mg.product.findOne({id:data.data.productId},function(errA,product){
+						if(errA){
+							console.log(errA);
+							result.success=false;
+							result.message="找不到产品";
+							returnFn();
+						}else{
+							data_mg.client.findOne({id:tokenArry[data.data.tk].user.id},function(errB,userA){
+								if(errB){
+									console.log(errB);
+									result.success=false;
+									result.message="获取用户信息失败";
+									returnFn();
+								}else{
+									if((userA.balance+userA.redpacket)<product.change*data.data.count||product.canChange=="0"){
+										console.log("余额不足");
+										result.success=false;
+										result.message="余额不足转让费用或产品不允许转让";
+										returnFn();
+									}else{
+										data_mg.client.update({id:userA.id},{$inc:{balance:(product.change*data.data.count>=userA.redpacket)?(userA.redpacket-(product.change*data.data.count)):0,redpacket:(product.change*data.data.count>=userA.redpacket)?(-userA.redpacket):(-product.change*data.data.count)}},function(errC){
+											if(errC){
+												console.log(errB);
+												result.success=false;
+												result.message="扣取转让费错误";
+												returnFn();
+											}else{
+												data.data.userId=user.id;
+												/**********************/
+												data_mg.deal.update({"id":data.data.id,"userId":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(errC){
+												if(errC){
+													console.log(errC)
+													result.success=false;
+													result.message="修改失败";
+													}else{
+														result.success=true;
+														result.code=1
+														}
+														returnFn();
+												})
+												/**********************/
+											}
+										})
+									}
+								}
+							})
+							
+							
+						}
+					})
+					
+				}
+			})
+			
+			}else{
+				result.success=false;
+				result.message="登陆信息超时";
+				returnFn();
+				}
+		
+		
+};
+/*****************************************************************************************************/
 function list(socket,data,fn){
 	console.log("deal/getdealList");
 	if(typeof(data.data)=="string"){
@@ -258,8 +357,8 @@ function list(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
-		if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
-			data_mg.deal.find({userId:tokenArry[data.data.token].id},function(err,doc){
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+			data_mg.deal.find({userId:tokenArry[data.data.tk].user.id},function(err,doc){
 			if(err){
 				console.log(err)
 				result.success=false;
@@ -278,73 +377,10 @@ function list(socket,data,fn){
 				}
 		
 };
-/*****************************************************/
-function money(socket,data,fn){
-	console.log("deal/money");
-	if(typeof(data.data)=="string"){
-		data.data=JSON.parse(data.data)
-		}
-	console.log(data.data)
-	//data.data = 10086/*不用传*/
-	var result={
-		code:0,
-		time:0,
-		data:{},
-		success:false,
-		message:""
-		};
-	var returnFn=function(){
-		if(socket){
-	 	socket.emit("deal_money",result);
-	 }
-	 	else if(fn){
-	 		var returnString = JSON.stringify(result);
-	 		fn(returnString);
-	 	}
-		}
-	data_mg.product.findOne({id:data.data.id},function(err,doc){
-						if(errA){
-							console.log(err)
-							result.success=false;
-							result.message="获取产品商品信息失败";
-							returnFn();
-							}else{
-								if(doc){
-									data_mg.com.find({productId:data.data.id},function(errA,docA){
-										if(errA){
-											console.log(errA)
-											result.success=false;
-											result.message="获取评论失败";
-											returnFn();
-										}else{
-											doc.com=docA;
-											data_mg.deal.find({productId:data.data.id},function(errB,docB){
-												if(errB){
-													console.log(errB)
-													result.success=false;
-													result.message="获取交易名单失败";
-												}else{
-													doc.member=docB;
-													result.success=true;
-													result.data=doc;
-												}
-												returnFn();
-											})
-										}
-									})
-								}else{
-									reuslt.success=false;
-									result.message="没有该产品"
-									returnFn();
-								}
-								}
-							
-						})
-		
-};
-exports.money=money;
+
 exports.get=get;
 exports.add=add;
-exports.edit=edit;
+exports.change=change;
+exports.sell=sell;
 exports.list=list;
 

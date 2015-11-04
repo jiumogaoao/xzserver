@@ -1332,6 +1332,195 @@ function cardEdit(socket,data,fn){
 		returnFn();
 		}	
 };
+/**********************************************************************************/
+function accountIn(socket,data,fn){
+	console.log(data);
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log("client/accountIn");
+	//data.data = {"tk":"xxxx",:"userName":"aa",/*登录名/手机/邮箱*/
+	//			"passWord":"djisk"}/*密码*/
+	
+	console.log(data.data)
+	var result={
+		success:false,
+		code:0,
+		message:"",
+		data:{},
+		time:0
+					};
+					
+	var returnFunction=function(){
+		if(socket){
+	 	socket.emit("client_accountIn",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+			var newIn=new data_mg.account({"id":uuid(),/*id*/
+		"userid":tokenArry[data.data.tk].user.id,/*帐号*/
+		"money":data.data.number,/*金额*/
+		"type":"0",/*0充值1提现*/
+		"time":new Date().getTime(),/*时间*/
+		"state":"1"/*0进行中1已完成*/});
+			newIn.save(function(err){
+				if(err){
+					console.log(err);
+					result.success=false;
+					result.message="充值提交失败";
+					returnFunction();
+				}else{
+					data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$inc:{balance:data.data.number}},{},function(errA){
+						if(errA){
+							console.log(errA);
+							result.success=false;
+							result.message="修改金额失败";
+						}else{
+							result.success=true;
+							result.code=1;
+						}
+						returnFunction();
+					})
+				}
+			});
+		}else{
+			console.log("登录信息超时")
+			result.success=false;
+			result.message="登录信息超时";
+			returnFunction();
+		}
+	}				
+/**********************************************************************************/
+function accountOut(socket,data,fn){
+	console.log(data);
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log("client/accountOut");
+	//data.data = {"tk":"xxxx",:"userName":"aa",/*登录名/手机/邮箱*/
+	//			"passWord":"djisk"}/*密码*/
+	
+	console.log(data.data)
+	var result={
+		success:false,
+		code:0,
+		message:"",
+		data:{},
+		time:0
+					};
+					
+	var returnFunction=function(){
+		if(socket){
+	 	socket.emit("client_accountOut",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+			data_mg.client.findOne({id:tokenArry[data.data.tk].user.id},function(err,user){
+				if(err){
+					console.log(err);
+					result.success=false;
+					result.message="用户信息获取失败";
+					returnFunction();
+				}else{
+					if(user.balance<data.data.number){
+						console.log("余额不足")
+						result.success=false;
+						result.message="余额不足";
+						returnFunction();
+					}else{
+						var newIn=new data_mg.account({"id":uuid(),/*id*/
+						"userid":tokenArry[data.data.tk].user.id,/*帐号*/
+						"money":data.data.number,/*金额*/
+						"type":"0",/*0充值1提现*/
+						"time":new Date().getTime(),/*时间*/
+						"state":"1"/*0进行中1已完成*/});
+							newIn.save(function(errA){
+								if(errA){
+									console.log(errA);
+									result.success=false;
+									result.message="充值提交失败";
+									returnFunction();
+								}else{
+									data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$inc:{balance:-data.data.number}},{},function(errB){
+										if(errB){
+											console.log(errB);
+											result.success=false;
+											result.message="修改金额失败";
+										}else{
+											result.success=true;
+											result.code=1;
+										}
+										returnFunction();
+									})
+								}
+							});
+					}
+					
+				}
+			})
+			
+		}else{
+			console.log("登录信息超时")
+			result.success=false;
+			result.message="登录信息超时";
+			returnFunction();
+		}
+	}				
+/**********************************************************************************/
+function accountOut(socket,data,fn){
+	console.log(data);
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log("client/accountOut");
+	//data.data = {"tk":"xxxx",:"userName":"aa",/*登录名/手机/邮箱*/
+	//			"passWord":"djisk"}/*密码*/
+	
+	console.log(data.data)
+	var result={
+		success:false,
+		code:0,
+		message:"",
+		data:{},
+		time:0
+					};
+					
+	var returnFunction=function(){
+		if(socket){
+	 	socket.emit("client_accountOut",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+			data_mg.account.find({userid:tokenArry[data.data.tk].user.id},function(err,doc){
+				if(err){
+					console.log(err);
+					result.message="获取账户信息出错"
+					result.success=false;
+				}else{
+					result.success=true;
+					result.code=1;
+					result.data=doc;
+				}
+				returnFunction();
+			})
+		}
+
+	}
+/**********************************************************************************/
+exports.accountOut=accountOut;
+exports.accountIn=accountIn;
 exports.cardEdit=cardEdit;
 exports.cardGet=cardGet;
 exports.realEdit=realEdit;
