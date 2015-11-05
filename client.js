@@ -1422,6 +1422,7 @@ function accountOut(socket,data,fn){
 	 		fn(returnString);
 	 	}
 		}
+		console.log("开始")
 		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
 			data_mg.client.findOne({id:tokenArry[data.data.tk].user.id},function(err,user){
 				if(err){
@@ -1430,16 +1431,19 @@ function accountOut(socket,data,fn){
 					result.message="用户信息获取失败";
 					returnFunction();
 				}else{
+					console.log("找到用户")
+					console.log(user);
 					if(user.balance<data.data.number){
 						console.log("余额不足")
 						result.success=false;
 						result.message="余额不足";
 						returnFunction();
 					}else{
+						console.log("添加提现记录")
 						var newIn=new data_mg.account({"id":uuid(),/*id*/
 						"userid":tokenArry[data.data.tk].user.id,/*帐号*/
 						"money":data.data.number,/*金额*/
-						"type":"0",/*0充值1提现*/
+						"type":"1",/*0充值1提现*/
 						"time":new Date().getTime(),/*时间*/
 						"state":"1"/*0进行中1已完成*/});
 							newIn.save(function(errA){
@@ -1449,12 +1453,16 @@ function accountOut(socket,data,fn){
 									result.message="充值提交失败";
 									returnFunction();
 								}else{
+									console.log("开始改数值")
+									console.log(tokenArry[data.data.tk].user.id)
+									console.log(user.balance)
+									console.log(data.data.number)
 									data_mg.client.update({id:tokenArry[data.data.tk].user.id},{$inc:{balance:-data.data.number}},{},function(errB){
 										if(errB){
 											console.log(errB);
 											result.success=false;
 											result.message="修改金额失败";
-										}else{
+										}else{console.log("修改成功")
 											result.success=true;
 											result.code=1;
 										}
@@ -1475,12 +1483,12 @@ function accountOut(socket,data,fn){
 		}
 	}				
 /**********************************************************************************/
-function accountOut(socket,data,fn){
+function accountGet(socket,data,fn){
 	console.log(data);
 	if(typeof(data.data)=="string"){
 		data.data=JSON.parse(data.data)
 		}
-	console.log("client/accountOut");
+	console.log("client/accountGet");
 	//data.data = {"tk":"xxxx",:"userName":"aa",/*登录名/手机/邮箱*/
 	//			"passWord":"djisk"}/*密码*/
 	
@@ -1495,7 +1503,7 @@ function accountOut(socket,data,fn){
 					
 	var returnFunction=function(){
 		if(socket){
-	 	socket.emit("client_accountOut",result);
+	 	socket.emit("client_accountGet",result);
 	 }
 	 	else if(fn){
 	 		var returnString = JSON.stringify(result);
@@ -1519,6 +1527,7 @@ function accountOut(socket,data,fn){
 
 	}
 /**********************************************************************************/
+exports.accountGet=accountGet;
 exports.accountOut=accountOut;
 exports.accountIn=accountIn;
 exports.cardEdit=cardEdit;
