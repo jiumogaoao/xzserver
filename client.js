@@ -428,7 +428,8 @@ function register(socket,data,fn){
 		"redpacket":0
 		}}
 																
-																if(data.data.invite){
+																if(data.data.introducer){
+																	console.log("有邀请人")
 																	var newInvite=new data_mg.invite({
 																		"id":uuid(),/*id*/
 																		"inviter":data.data.introducer,/*邀请人id*/
@@ -450,16 +451,12 @@ function register(socket,data,fn){
 			if(errG){
 																				console.log(errG);
 																				}else{
-																					data_mg.client.findOne({id:data.data.introducer},function(errY,docY){
-																						if(errY){
-																							console.log(errY)
-																						}else{
-																							var newbalance=docY.balance+10;
-																							data_mg.client.update({id:data.data.introducer},{$set:{"balance":newbalance}},{},function(errX){
+																
+																							data_mg.client.update({id:data.data.introducer},{$inc:{"redpacket":10}},{},function(errX){
 																								console.log(errX)
 																							});
-																						}
-																					})
+																						
+								
 																				}
 			})
 																					}
@@ -530,6 +527,67 @@ function resetKey(socket,data,fn){
 	
 		
 };
+/*******************************************************************************************************/
+function resetAllKey(socket,data,fn){
+	console.log("client/resetAllKey");
+	//data.data = "ddgdgd"/*管理员id*/
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log(data.data)
+	var result={code:0,
+		time:0,
+		data:[],
+		success:false,
+		message:""};
+	var returnFn=function(){
+		if(socket){
+	 	socket.emit("client_resetAllKey",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+	}
+	console.log("修改password")
+	var lock=1;
+	var callbackcount=0;
+	var errSend=1;
+	var callbackFn=function(){
+		if(lock){
+			callbackcount++;
+			if(callbackcount==data.data.list.length){
+				console.log("更新成功")
+				result.success=true;
+					result.code=1;
+					returnFn()
+				}
+			}else{
+				if(errSend){
+					errSend=0;
+					returnFn();
+					}
+				}
+		}
+		for (var i=0;i<data.data.list.length;i++){
+			if(lock){
+				data_mg.client_password.update({"parentKey":data.data.list[i]},{$set:{childKey:"123456"}},{},function(err){
+					console.log(data.data.list[i])
+		if(err){
+			console.log(err)
+			lock=0;
+			result.success=false;
+			result.message="重置出错";
+			result.code=0
+		}
+		callbackFn();
+	})
+				}
+			
+			}
+	
+		
+};
 /*************************************************************************************/
 function get(socket,data,fn){
 	console.log("client/get");
@@ -553,15 +611,15 @@ function get(socket,data,fn){
 		 		fn(returnString);
 		 	}
 		}
-	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user&&tokenArry[data.data.token].user.type==2){
-		data_mg.updateTime.find({"parentKey":"client"},function(err,doc){
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		data_mg.updateTime.findOne({"parentKey":"client"},function(err,doc){
 	if(err){
 		console.log(err);
 		result.success=false;
 		result.message="获取更新时间失败"
 		returnFn();
 	}else{
-		if(doc&&doc.length&&doc[0]>data.data.time){
+		if(doc&&doc.childKey>data.data.time){console.log("有更新")
 			result.time=doc.childKey;
 			data_mg.client.$where('this.type != 2').exec(function(errA,docA){
 				if(errA){
@@ -570,6 +628,7 @@ function get(socket,data,fn){
 		result.message="获取用户失败"
 				}else{
 					if(docA){
+						console.log(docA)
 						result.success=true;
 						result.code=1
 						result.data=docA
@@ -577,7 +636,7 @@ function get(socket,data,fn){
 				}
 				returnFn();
 			})
-		}else{
+		}else{console.log("没更新")
 			result.success=true;
 			result.code=0;
 			returnFn();
@@ -674,7 +733,8 @@ function remove(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 	}
-	if(tokenArry[data.data.token]&&tokenArry[data.data.token].user){
+	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
+		
 		data_mg.client.remove({"id":data.data.id},function(err){
 		if(err){
 			console.log(err)
@@ -1527,6 +1587,51 @@ function accountGet(socket,data,fn){
 
 	}
 /**********************************************************************************/
+function redPacketGet(socket,data,fn){
+	console.log(data);
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log("client/redPacketGet");
+	//data.data = {"tk":"xxxx",:"userName":"aa",/*登录名/手机/邮箱*/
+	//			"passWord":"djisk"}/*密码*/
+	
+	console.log(data.data)
+	var result={
+		success:false,
+		code:0,
+		message:"",
+		data:{},
+		time:0
+					};
+					
+	var returnFunction=function(){
+		if(socket){
+	 	socket.emit("client_redPacketGet",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.id){
+			data_mg.redPacket.find({userId:tokenArry[data.data.tk].user.id},function(err,doc){
+				if(err){
+					console.log(err);
+					result.message="获取账户信息出错"
+					result.success=false;
+				}else{
+					result.success=true;
+					result.code=1;
+					result.data=doc;
+				}
+				returnFunction();
+			})
+		}
+
+	}
+exports.resetAllKey=resetAllKey;
+exports.redPacketGet=redPacketGet;
 exports.accountGet=accountGet;
 exports.accountOut=accountOut;
 exports.accountIn=accountIn;
