@@ -734,26 +734,86 @@ function remove(socket,data,fn){
 	 	}	
 	}
 	if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].user&&tokenArry[data.data.tk].user.type==2){
-		
-		data_mg.client.remove({"id":data.data.id},function(err){
+		var lock=1;
+	var callbackcount=0;
+	var errSend=1;
+	var callbackFn=function(){
+		if(lock){
+			callbackcount++;
+			if(callbackcount==data.data.list.length){
+				data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(err){
+					if(err){
+						console.log(err);
+						result.success=false;
+						result.message="更新时间出错";
+						result.code=0;
+					}else{
+						result.success=true;
+						result.code=1;
+					}
+
+					returnFn()
+				})
+				}
+			}else{
+				if(errSend){
+					errSend=0;
+					returnFn();
+					}
+				}
+		}
+		for (var i=0;i<data.data.list.length;i++){
+			if(lock){
+				data_mg.client.remove({"id":data.data.list[i]},function(err){
+					console.log(data.data.list[i])
 		if(err){
 			console.log(err)
+			lock=0;
 			result.success=false;
-			result.message="删除失败"
-			returnFn()
+			result.message=data.data.list[i]+"删除用户出错";
+			result.code=0
+			callbackFn();
 		}else{
-			data_mg.updateTime.update({"parentKey":"client"},{$set:{"childKey":new Date().getTime()}},{},function(errA){
+			data_mg.client_password.remove({"parentKey":data.data.list[i]},function(errA){
 				if(errA){
-					console.log(errA)
-					result.message="更新信息失败"
+					console.log(errA);
+					lock=0;
 					result.success=false;
+					result.message=data.data.list[i]+"删除用户出错";
+					result.code=0;
+					callbackFn();
 				}else{
-					result.success=true;
+					data_mg.realName.remove({"id":data.data.list[i]},function(errB){
+						if(errB){
+							console.log(errB);
+							lock=0;
+							result.success=false;
+							result.message=data.data.list[i]+"删除实名信息出错";
+							result.code=0;
+							callbackFn();
+						}else{
+							data_mg.cardBind.remove({"id":data.data.list[i]},function(errC){
+								if(errC){
+									console.log(errC);
+									lock=0;
+									result.success=false;
+									result.message=data.data.list[i]+"删除银行卡信息出错";
+									result.code=0;
+									callbackFn();
+								}else{
+									callbackFn();
+								}
+							})
+						}
+					});
 				}
-				returnFn()
 			})
 		}
+		
 	})
+				}
+			
+			}
 		}else{
 		result.success=false;
 		result.message="登录超时,请重新登录";
