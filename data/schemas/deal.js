@@ -7,6 +7,8 @@ var MemberSchema = new mongoose.Schema({
 		"endTime":Number,/*退出时间*/
 		"buyPrice":Number,/*买入价*/
 		"sellPrice":Number,/*卖出价*/
-		"count":Number/*数量*/
+		"count":Number,/*数量*/
+		"name":String,/*用户名*/
+		"phone":String/*用户手机号*/
 	})
 module.exports = MemberSchema;

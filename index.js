@@ -41,7 +41,7 @@ var app = require('./server')
 	  data_mg.realName = require('./data/models/realName');//实名制表
 	  data_mg.cardBind = require('./data/models/cardBind');//银行卡表
 	  data_mg.redPacket = require('./data/models/redPacket');//红包表
-
+	  data_mg.count = require('./data/models/count');//数据统计表
 
 
 /***********************************************************************************/
@@ -82,10 +82,67 @@ var initDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==29){
+			if(totalCount==32){
 				showDB();
 				}
 			}
+		var addConfig=new data_mg.config({
+		any:{
+		footerInfo:{
+			titleText:"全国首家专业房地产众筹平台",
+			slogan:"人人参与  创新投资",
+			mobile:"（021）6181-3682",
+			fax:"（021）6181-3682",
+			time:"（周一至周五 10:00-18:30）",
+			number:"400-661-3350",
+	      companyName:"上海中筹互联网金融信息服务有限公司",
+		  referredToAs:"",
+		  companyUrl:"",
+	      cooperationEmail:"biz@cncrowd.com",
+		  recruitmentEmail:"biz@cncrowd.com",
+		  address:["地址：上海市长宁区延安西路1118号","龙之梦大厦2202室&nbsp;&nbsp;&nbsp;&nbsp;","200052"],
+	      copRight:"©2014 CNCrowd",
+		  record:" 沪ICP备14044695号-1",
+	      nav:[{id:"mode",name:"中筹模式"},{id:"product",name:"我要众筹"},{id:"procedure",name:"众筹步聚"},{id:"FAQS",name:"常见问题"},{id:"about",name:"关于我们"}],
+	      conText_0:"为全国首家专业房地产众筹平台",
+	      conText_1:"致力于通过互联网金融的创新",
+	      conText_2:"推动传统房地产投融资模式的变革和创新"
+         },
+         earnings:{
+           titleText:"高收益从何而来",
+           dsc:"高收益来自于对市场的深度判断和有力操控",
+           earningsRateTitle:"收益率",
+           earningsRate:"15%",
+           steps:["开始众筹","风险把控","资产来源","每份100元","众筹获利","增值管理","溢价出售"],
+           title_2:"众筹",
+           image:"images/slide_01.png"
+         },
+		 logo:"img/headerLogo.jpg",
+		 more:"1",
+		 change:"1",
+         button:[[{id:"login",name:"登录"},{id:"register",name:"注册"}],[{id:"zone",name:"用户中心"},{id:"out",name:"退出"}],[{id:"out",name:"退出"}]],
+         nav:[{id:"mode",name:"众筹模式"},{id:"product",name:"我要众筹"},{id:"procedure",name:"众筹步聚"},{id:"FAQS",name:"常见问题"},{id:"about",name:"关于我们"}]
+		}
+     })
+	 	addConfig.save(
+		function(){
+			console.log("config init");
+			totalCheck();
+			}
+		)
+	 	var configUP=new data_mg.updateTime({"parentKey":"config","childKey":new Date().getTime()})
+	    configUP.save(function(){
+			console.log("configTime init");
+			totalCheck();
+			});
+		var newTotal=new data_mg.count({
+		"name":"totalView",//图片id
+		"number":0,//路径
+		});
+		newTotal.save(function(){
+			console.log("Total init");
+			totalCheck();
+		});
 		var addAdmin=new data_mg.client({"id":"001",/*id*/
 		"type":2,/*类型,1普通用户2管理用户*/
 		"userName":"admin",/*用户名*/
@@ -299,7 +356,7 @@ var emptyDB=function(){
 		var totalCount=0;
 		function totalCheck(){
 			totalCount++;
-			if(totalCount==13){
+			if(totalCount==15){
 				initDB();
 				}
 			}
@@ -351,13 +408,21 @@ var emptyDB=function(){
 			console.log("promotion empty");
 			totalCheck();
 			});
+		data_mg.count.remove({},function(){
+			console.log("count empty");
+			totalCheck();
+			});
+		data_mg.config.remove({},function(){
+			console.log("config empty");
+			totalCheck();
+			});
 		data_mg.updateTime.remove({},function(){
 			console.log("updateTime empty");
 			totalCheck();
 			});
 }
-	//emptyDB();
-	showDB();
+	emptyDB();
+	//showDB();
 /***********************************************************************************/	
  	 var io = require('socket.io').listen(app.target)
 app.target.listen(8888);

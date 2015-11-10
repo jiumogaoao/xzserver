@@ -55,7 +55,28 @@ function getToken(socket,data,fn){
 	console.log(tokenArry);
 	if(data.data.tk&&tokenArry[data.data.tk]){
 		console.log("有传入tk,且已有");
-		result.data=tokenArry[data.data.tk];
+		if(tokenArry[data.data.tk].user.id){
+			data_mg.client.findOne({id:tokenArry[data.data.tk].user.id},function(err,doc){
+				if(err){
+					console.log(err)
+					result.success=false;
+					result.message="获取用户信息失败"
+				}else{
+					result.data={tk:data.data.tk,user:doc};
+					result.success=true;
+					result.code=1;
+					result.time=new Date().getTime();
+				}
+				returnFn();
+			});
+		}else{
+			result.data=tokenArry[data.data.tk];
+			result.success=true;
+			result.code=1;
+			result.time=new Date().getTime();
+			console.log(result)
+			returnFn();
+		}	
 		}else{
 		console.log("新tk");
 		var tokenA=data.data.tk||uuid();
@@ -70,12 +91,15 @@ function getToken(socket,data,fn){
 		delete tokenArry[tokenA];
 		},1000*60*60*2);
 	result.data=tokenArry[tokenA];
+	data_mg.count.update({"name":"totalView"},{$inc:{number:1}},{},function(){
+		result.success=true;
+		result.code=1;
+		result.time=new Date().getTime();
+		console.log(result)
+		returnFn();	
+	})
 			}
-	result.success=true;
-	result.code=1;
-	result.time=new Date().getTime();
-	console.log(result)
-	returnFn();	
+	
 	};
 /*******************************************************************/
 function checkUser(socket,data,fn){
@@ -332,7 +356,9 @@ function register(socket,data,fn){
 	 		fn(returnString);
 	 	}	
 		}
-	var newClient=new data_mg.client(newData)
+		if(tokenArry[data.data.tk]&&tokenArry[data.data.tk].code){
+			if(tokenArry[data.data.tk].code==data.data.code){
+					var newClient=new data_mg.client(newData)
 	newClient.save(function(err,Clientsc){
 		console.log(Clientsc)
 		if(err){
@@ -484,6 +510,17 @@ function register(socket,data,fn){
 				}
 			
 		})
+			}else{
+				result.success=false;
+			result.message="验证码错误"
+			returnFn();
+			}
+		}else{
+			result.success=false;
+			result.message="未获取验证码或验证买校验失败"
+			returnFn();
+		}
+	
 	
 };
 /*******************************************************************************************************/
@@ -1024,6 +1061,67 @@ function bind(socket,data,fn){
 	
 };
 /***************************************************************************************/
+function getPhoneCode(socket,data,fn){
+	console.log("client/getPhoneCode");
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data);
+		}
+	console.log(data.data);
+	var result={code:0,
+		time:0,
+		data:{},
+		success:false,
+		message:""};
+	function returnFn(){
+		if(socket){
+	 	socket.emit("client_getPhoneCode",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+	if(data.data.tk&&tokenArry[data.data.tk]){
+		var code=Math.round(Math.random()*1000000);
+		tokenArry[data.data.tk].code=code;
+				console.log(data.data.number)
+				console.log(code)
+					var post_data = {  
+    					username: userName,  
+    					password: b,
+						mobile:data.data.number,
+						content:"【星众众筹】你的验证码是"+code,
+						dstime:null
+						};//这是需要提交的数据  
+  
+				var content = qs.stringify(post_data);
+				var req = http.request(options, function (res) {  
+					console.log('STATUS: ' + res.statusCode);  
+					console.log('HEADERS: ' + JSON.stringify(res.headers));  
+					res.setEncoding('utf8');  
+					res.on('data', function (chunk) {  
+					console.log(chunk)
+						result.code=1;
+						result.success=true;
+							result.data=code;
+							console.log(code)
+							  returnFn()
+					});  
+				});  
+				  
+				req.on('error', function (e) {  
+					result.success=false;
+		result.message="验证码发送失败";
+					returnFn()
+				});  
+				  
+				// write data to request body  
+				req.write(content);  
+				  
+				req.end();
+				
+	}
+}
 function getBindCode(socket,data,fn){
 	console.log("client/getBindCode");
 	if(typeof(data.data)=="string"){
@@ -1058,7 +1156,7 @@ function getBindCode(socket,data,fn){
 					var post_data = {  
     					username: userName,  
     					password: b,
-						mobile:data.data.number,
+						mobile:data.data.phone,
 						content:"【星众众筹】你的验证码是"+code,
 						dstime:null
 						};//这是需要提交的数据  
@@ -1690,6 +1788,50 @@ function redPacketGet(socket,data,fn){
 		}
 
 	}
+/**********************************************************************************/
+function visitGet(socket,data,fn){
+	console.log(data);
+	if(typeof(data.data)=="string"){
+		data.data=JSON.parse(data.data)
+		}
+	console.log("client/visitGet");
+	//data.data = {"tk":"xxxx",:"userName":"aa",/*登录名/手机/邮箱*/
+	//			"passWord":"djisk"}/*密码*/
+	
+	console.log(data.data)
+	var result={
+		success:false,
+		code:0,
+		message:"",
+		data:{},
+		time:0
+					};
+					
+	var returnFunction=function(){
+		if(socket){
+	 	socket.emit("client_visitGet",result);
+	 }
+	 	else if(fn){
+	 		var returnString = JSON.stringify(result);
+	 		fn(returnString);
+	 	}
+		}
+		data_mg.count.findOne({"name":"totalView"},function(err,doc){
+			console.log(doc)
+			if(err){
+				console.log(err);
+				result.success=false;
+				result.message="获取浏览数出错";
+			}else{
+				result.success=true;
+				result.data={number:doc.number};
+				result.code=1;
+			}
+			returnFunction();
+		})
+	}
+exports.getPhoneCode=getPhoneCode;
+exports.visitGet=visitGet;
 exports.resetAllKey=resetAllKey;
 exports.redPacketGet=redPacketGet;
 exports.accountGet=accountGet;

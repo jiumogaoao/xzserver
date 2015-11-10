@@ -93,6 +93,8 @@ function add(socket,data,fn){
 									returnFn();
 								}else{console.log("更新余额时间成功")
 									/********************************************/
+									data.data.name=member.userName;
+									data.data.phone=member.phone;
 									var deal=new data_mg.deal(data.data);	
 									deal.save(function(errC){
 		if(errC){
@@ -304,6 +306,8 @@ function change(socket,data,fn){
 											}else{
 												data.data.userId=user.id;
 												/**********************/
+												data.data.name=user.userName;
+												data.data.phone=user.phone;
 												data_mg.deal.update({"id":data.data.id,"userId":tokenArry[data.data.tk].user.id},{$set:data.data},{},function(errC){
 												if(errC){
 													console.log(errC)
